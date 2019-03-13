@@ -11,6 +11,7 @@ import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -22,7 +23,7 @@ import com.mongo.demo.document.Product;
 public class PaymentReportBuilder extends AbstractXlsxView{
 
 	@Override
-	protected void buildExcelDocument(Map<String, Object> data, Workbook workbook, HttpServletRequest arg2,
+	protected void buildExcelDocument(Map<String, Object> data, Workbook workbook, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		List<Product> products = (List<Product>) data.get("products");
 		response.setHeader("Content-Disposition", "attachment; filename=\"my-xlsx-file.xlsx\"");
@@ -42,7 +43,20 @@ public class PaymentReportBuilder extends AbstractXlsxView{
         font.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
         font.setColor(HSSFColor.WHITE.index);
         style.setFont(font);
-         
+        
+        
+        CellStyle redRow = workbook.createCellStyle();
+        redRow.setFillPattern(CellStyle.SOLID_FOREGROUND);
+        redRow.setFillForegroundColor(HSSFColor.RED.index);
+        redRow.setBorderRight((short) 1);
+        redRow.setRightBorderColor(IndexedColors.BLACK.getIndex());
+        redRow.setBorderLeft((short) 1);
+        redRow.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+        redRow.setBorderTop((short) 1);
+        redRow.setTopBorderColor(IndexedColors.BLACK.getIndex());
+        redRow.setBorderBottom((short) 1);
+        redRow.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+        
         // create header row
         Row header = sheet.createRow(1);
          
@@ -63,6 +77,11 @@ public class PaymentReportBuilder extends AbstractXlsxView{
             aRow.createCell(0).setCellValue(product.getName());
             aRow.createCell(1).setCellValue(product.getQtyAbl());
             aRow.createCell(2).setCellValue(product.getAlert());
+            if(product.getQtyAbl()< product.getAlert()) {
+            	aRow.getCell(0).setCellStyle(redRow);
+            	aRow.getCell(1).setCellStyle(redRow);
+            	aRow.getCell(2).setCellStyle(redRow);
+            }
         }
     }
 
