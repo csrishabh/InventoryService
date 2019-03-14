@@ -24,6 +24,7 @@ import com.mongo.demo.document.User;
 import com.mongo.demo.repo.ProductRepo;
 import com.mongo.demo.repo.TransctionRepo;
 import com.mongo.demo.service.CustomUserDetailsService;
+import com.mongo.demo.service.EmailService;
 
 @RestController
 public class TransctionController {
@@ -35,7 +36,10 @@ public class TransctionController {
 	private ProductRepo pRepo;
 	
 	@Autowired 
-	CustomUserDetailsService userService;
+	private CustomUserDetailsService userService;
+	
+	@Autowired
+	private EmailService emailService;
 
 	@PostMapping("/addTransction")
 	public ResponseEntity<Transction> addTrasction(@RequestBody Transction transction) {
@@ -56,7 +60,9 @@ public class TransctionController {
 						 if(product == null) {
 								return new ResponseEntity<Transction>(transction,HttpStatus.NOT_ACCEPTABLE);
 				}
-					
+					if(product.getQtyAbl() < product.getAlert()) {
+						emailService.sendAlertMail(product);
+					}
 				}
 				Transction t = tRepo.save(transction);
 				return new ResponseEntity<Transction>(t, HttpStatus.CREATED);
@@ -69,7 +75,6 @@ public class TransctionController {
 	@PostMapping("/delTransction")
 	public ResponseEntity<Transction> deleteTrasction(@RequestBody Transction transction) {
 		try {
-			
 			if(transction.getId()!=null) {
 				Transction t = tRepo.deleteTransction(transction);
 				if(t == null) {

@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -47,8 +48,9 @@ public class ProductRepoImpl implements ProductRepoCustom{
 				query.addCriteria(Criteria.where("id").is(product.getId()).and("qtyAbl").gte(qty));
 				update.inc("qtyAbl", -qty);
 			}
-			
-			return mongoTemplate.findAndModify(query, update, Product.class);
+			FindAndModifyOptions options = new FindAndModifyOptions();
+			options.returnNew(true);
+			return mongoTemplate.findAndModify(query, update, options,Product.class);
 	 }
 
 }
