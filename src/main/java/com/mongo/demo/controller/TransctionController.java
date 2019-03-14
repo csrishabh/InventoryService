@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,7 +54,7 @@ public class TransctionController {
 				} else if (transction.getType() == TransctionType.DISPATCH) {
 						 product = pRepo.updateProduct(product, TransctionType.DISPATCH, transction.getQuantity());
 						 if(product == null) {
-								return new ResponseEntity<Transction>(HttpStatus.NOT_ACCEPTABLE);
+								return new ResponseEntity<Transction>(transction,HttpStatus.NOT_ACCEPTABLE);
 				}
 					
 				}
@@ -68,9 +69,12 @@ public class TransctionController {
 	@PostMapping("/delTransction")
 	public ResponseEntity<Transction> deleteTrasction(@RequestBody Transction transction) {
 		try {
-			String id = transction.getId();
-			if(id!=null) {
-				tRepo.deleteById(transction.getId());
+			
+			if(transction.getId()!=null) {
+				Transction t = tRepo.deleteTransction(transction);
+				if(t == null) {
+					return new ResponseEntity<Transction>(HttpStatus.NOT_ACCEPTABLE);
+				}
 				return new ResponseEntity<Transction>(HttpStatus.OK);
 			}
 			return new ResponseEntity<Transction>(HttpStatus.NOT_FOUND);
@@ -114,12 +118,19 @@ public class TransctionController {
 	
 	
 	@PostMapping("/addTransctions")
-	public ResponseEntity saveTransctions( @RequestBody List<Transction> transctions) {
+	public ResponseEntity<List<Transction>> saveTransctions( @RequestBody List<Transction> transctions) {
+		List<Transction> unSuccessFulTrns = new ArrayList<>();
 		try {
 			
 			transctions.stream().forEach(t->{
-			addTrasction(t);
+			ResponseEntity<Transction> res =  addTrasction(t);
+			if(res.getStatusCode() == HttpStatus.NOT_ACCEPTABLE) {
+				unSuccessFulTrns.add(res.getBody());
+			}
 			});
+			if(unSuccessFulTrns.size()>0) {
+				return new ResponseEntity<>(unSuccessFulTrns,HttpStatus.NOT_ACCEPTABLE);
+			}
 			return new ResponseEntity<>(HttpStatus.OK);
 		}
 		catch (Exception e) {

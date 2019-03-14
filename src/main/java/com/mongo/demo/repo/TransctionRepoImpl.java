@@ -44,4 +44,11 @@ public class TransctionRepoImpl implements TransctionRepoCustom {
 		
 	}
 
+	@Override
+	public Transction deleteTransction(Transction t) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("id").is(t.getId()).and("isAdtDone").is(false));
+		return mongoTemplate.findAndRemove(query, Transction.class);
+	}
+
 }

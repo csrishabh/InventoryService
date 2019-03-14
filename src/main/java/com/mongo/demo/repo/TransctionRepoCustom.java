@@ -11,5 +11,7 @@ public interface TransctionRepoCustom {
 	public List<Transction> getAuditPandingTransction(Date startDate, Date endDate);
 	
 	Transction updateTransction(Transction t);
+	
+	Transction deleteTransction(Transction t);
 
 }
