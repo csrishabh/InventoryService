@@ -4,7 +4,10 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.mongo.utility.Config;
 
 @Document
 public class Product implements Serializable {
@@ -18,14 +21,23 @@ public class Product implements Serializable {
 	private String id;
 
 	private String name;
-
+	
+	@Transient
 	private double alert;
+	
+	private long alertBack;
 
 	private Unit unit;
 
+	@Transient
 	private double lastPrice;
+	
+	private long lastPriceBack;
 
+	@Transient
 	private double qtyAbl;
+	
+	private long qtyAblBack;
 
 	private String lstAddBy;
 
@@ -124,5 +136,22 @@ public class Product implements Serializable {
 	public void setQtyAbl(double qtyAbl) {
 		this.qtyAbl = qtyAbl;
 	}
-
+	public long getAlertBack() {
+		return alertBack;
+	}
+	public void setAlertBack(long alertBack) {
+		this.alertBack = alertBack;
+	}
+	public long getLastPriceBack() {
+		return lastPriceBack;
+	}
+	public void setLastPriceBack(long lastPriceBack) {
+		this.lastPriceBack = lastPriceBack;
+	}
+	public long getQtyAblBack() {
+		return qtyAblBack;
+	}
+	public void setQtyAblBack(long qtyAblBack) {
+		this.qtyAblBack = qtyAblBack;
+	}
 }

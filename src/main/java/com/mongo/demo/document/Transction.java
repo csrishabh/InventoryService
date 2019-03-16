@@ -4,7 +4,10 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.mongo.utility.Config;
 
 @Document
 public class Transction implements Serializable {
@@ -17,13 +20,19 @@ public class Transction implements Serializable {
 	@Id
 	private String id;
 
+	@Transient
 	private double quantity;
+	
+	private long quantityBack;
 
 	private TransctionType type;
 
 	private String productId;
-
+	
+	@Transient
 	private double amount;
+	
+	private long amountBack;
 
 	private Date date;
 
@@ -138,4 +147,20 @@ public class Transction implements Serializable {
 		this.amount = amount;
 	}
 
+	public long getQuantityBack() {
+		return quantityBack;
+	}
+
+	public void setQuantityBack(long quantityBack) {
+		this.quantityBack = quantityBack;
+	}
+
+	public long getAmountBack() {
+		return amountBack;
+	}
+
+	public void setAmountBack(long amountBack) {
+		this.amountBack = amountBack;
+	}
+	
 }

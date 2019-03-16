@@ -25,6 +25,7 @@ import com.mongo.demo.repo.ProductRepo;
 import com.mongo.demo.repo.TransctionRepo;
 import com.mongo.demo.service.CustomUserDetailsService;
 import com.mongo.demo.service.EmailService;
+import com.mongo.utility.Config;
 
 @RestController
 public class TransctionController {
@@ -60,10 +61,12 @@ public class TransctionController {
 						 if(product == null) {
 								return new ResponseEntity<Transction>(transction,HttpStatus.NOT_ACCEPTABLE);
 				}
-					if(product.getQtyAbl() < product.getAlert()) {
+					if(product.getQtyAblBack() < product.getAlertBack()) {
 						emailService.sendAlertMail(product);
 					}
 				}
+				transction.setAmountBack((long)(transction.getAmount()*Config.PRICE_FORMATTER));
+				transction.setQuantityBack((long)(transction.getQuantity()*Config.QTY_FORMATTER));
 				Transction t = tRepo.save(transction);
 				return new ResponseEntity<Transction>(t, HttpStatus.CREATED);
 		} catch (Exception e) {
@@ -105,10 +108,10 @@ public class TransctionController {
 				Object[] arr = new Object[7];
 				arr[0] = formatter.format(t.getDate());
 				arr[1] = p.getName();
-				arr[2] = new Double(t.getQuantity());
-				arr[3] = new Double(t.getAmount());
+				arr[2] = Config.format(t.getQuantityBack(), Config.QTY_FORMATTER);
+				arr[3] = Config.format(t.getAmountBack(), Config.PRICE_FORMATTER);
 				arr[4]= user.getFullname();
-				arr[5]= String.valueOf(p.getLastPrice());
+				arr[5]= String.valueOf(Config.format(p.getLastPriceBack(), Config.PRICE_FORMATTER));
 				arr[6]= t.getId();
 				response.add(arr);
 			});
@@ -153,12 +156,12 @@ public class TransctionController {
 			trns.setId(transction.getId());
 			double price = transction.getAmount() / transction.getQuantity();
 			price = Math.round(price * 100.0) / 100.0;
-			product.setLastPrice(price);
+			product.setLastPriceBack((long) (price * Config.PRICE_FORMATTER));
 			product.setLstAdtBy(SecurityContextHolder.getContext().getAuthentication().getName());
 		
 			
-			trns.setAmount(transction.getAmount());
-			trns.setQuantity(transction.getQuantity());
+			trns.setAmountBack((long)(transction.getAmount()*Config.PRICE_FORMATTER));
+			trns.setQuantityBack((long)(transction.getQuantity()*Config.QTY_FORMATTER));
 			trns.setAdtBy(SecurityContextHolder.getContext().getAuthentication().getName());
 			trns.setType(TransctionType.AUDIT);
 			trns = tRepo.updateTransction(trns);

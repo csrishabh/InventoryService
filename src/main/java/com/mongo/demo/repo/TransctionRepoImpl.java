@@ -33,8 +33,8 @@ public class TransctionRepoImpl implements TransctionRepoCustom {
 		
 		if(t.getType() == TransctionType.AUDIT){
 			query.addCriteria(Criteria.where("id").is(t.getId()).and("isAdtDone").is(false));
-			update.inc("quantity", t.getQuantity());
-			update.set("amount", t.getAmount());
+			update.set("quantityBack", t.getQuantityBack());
+			update.set("amountBack", t.getAmountBack());
 			update.set("isAdtDone", true);
 			update.set("adtDate", new Date());
 			update.set("adtBy", t.getAdtBy());

@@ -15,12 +15,16 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.view.document.AbstractXlsxView;
 
 import com.mongo.demo.document.Product;
-
+import com.mongo.utility.Config;
 
 public class PaymentReportBuilder extends AbstractXlsxView{
+	
+	
+	
 
 	@Override
 	protected void buildExcelDocument(Map<String, Object> data, Workbook workbook, HttpServletRequest request,
@@ -75,9 +79,9 @@ public class PaymentReportBuilder extends AbstractXlsxView{
         for (Product product : products) {
             Row aRow = sheet.createRow(rowCount++);
             aRow.createCell(0).setCellValue(product.getName());
-            aRow.createCell(1).setCellValue(product.getQtyAbl());
-            aRow.createCell(2).setCellValue(product.getAlert());
-            if(product.getQtyAbl()< product.getAlert()) {
+            aRow.createCell(1).setCellValue(Config.format(product.getQtyAblBack(), Config.QTY_FORMATTER));
+            aRow.createCell(2).setCellValue(Config.format(product.getAlertBack(), Config.QTY_FORMATTER));
+            if(product.getQtyAblBack()< product.getAlertBack()) {
             	aRow.getCell(0).setCellStyle(redRow);
             	aRow.getCell(1).setCellStyle(redRow);
             	aRow.getCell(2).setCellStyle(redRow);

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import com.mongo.demo.document.Product;
 import com.mongo.demo.document.TransctionType;
+import com.mongo.utility.Config;
 
 @Repository
 public class ProductRepoImpl implements ProductRepoCustom{
@@ -39,14 +40,14 @@ public class ProductRepoImpl implements ProductRepoCustom{
 			}
 			else if(type == TransctionType.AUDIT) {
 				query.addCriteria(Criteria.where("id").is(product.getId()));	
-				update.inc("qtyAbl", qty);
+				update.inc("qtyAblBack", (long)(qty*Config.QTY_FORMATTER));
 				update.set("lstAdtBy", product.getLstAdtBy());
 				update.set("lstAdtDate", new Date());
-				update.set("lastPrice", product.getLastPrice());
+				update.set("lastPriceBack", product.getLastPriceBack());
 			}
 			else if(type == TransctionType.DISPATCH){
-				query.addCriteria(Criteria.where("id").is(product.getId()).and("qtyAbl").gte(qty));
-				update.inc("qtyAbl", -qty);
+				query.addCriteria(Criteria.where("id").is(product.getId()).and("qtyAblBack").gte((long)(qty*Config.QTY_FORMATTER)));
+				update.inc("qtyAblBack", (long	)(-qty*Config.QTY_FORMATTER));
 			}
 			FindAndModifyOptions options = new FindAndModifyOptions();
 			options.returnNew(true);
