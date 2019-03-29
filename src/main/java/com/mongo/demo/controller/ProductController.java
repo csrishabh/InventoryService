@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mongo.demo.document.Product;
 import com.mongo.demo.repo.ProductRepo;
+import com.mongo.demo.service.ProductService;
 import com.mongo.utility.Config;
 
 @RestController
@@ -22,6 +24,9 @@ public class ProductController {
 
 	@Autowired
 	ProductRepo repo;
+	
+	@Autowired
+	ProductService productService;
 
 	@GetMapping("/test")
 	public String test() {
@@ -73,4 +78,13 @@ public class ProductController {
 		});
 		return products;
 	}
+	
+	@GetMapping("/searchProducts/{pageNo}")
+	public Page<Product> getProducts(@PathVariable("pageNo") int pageNo) {
+		
+		Page<Product> products = productService.SearchProducts(pageNo);
+		formatProducts(products.getContent());
+		return products;
+	}
+	
 }

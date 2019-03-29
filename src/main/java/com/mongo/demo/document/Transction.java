@@ -7,8 +7,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.mongo.utility.Config;
-
 @Document
 public class Transction implements Serializable {
 
@@ -28,6 +26,8 @@ public class Transction implements Serializable {
 	private TransctionType type;
 
 	private String productId;
+	
+	private String productName;
 	
 	@Transient
 	private double amount;
@@ -161,6 +161,14 @@ public class Transction implements Serializable {
 
 	public void setAmountBack(long amountBack) {
 		this.amountBack = amountBack;
+	}
+
+	public String getProductName() {
+		return productName;
+	}
+
+	public void setProductName(String productName) {
+		this.productName = productName;
 	}
 	
 }

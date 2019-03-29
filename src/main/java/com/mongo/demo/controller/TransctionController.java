@@ -5,22 +5,25 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mongo.demo.document.Cart;
 import com.mongo.demo.document.Product;
 import com.mongo.demo.document.Transction;
 import com.mongo.demo.document.TransctionType;
 import com.mongo.demo.document.User;
+import com.mongo.demo.repo.CartRepo;
 import com.mongo.demo.repo.ProductRepo;
 import com.mongo.demo.repo.TransctionRepo;
 import com.mongo.demo.service.CustomUserDetailsService;
@@ -35,6 +38,10 @@ public class TransctionController {
 
 	@Autowired
 	private ProductRepo pRepo;
+	
+	@Autowired
+	
+	private CartRepo cartRepo;
 	
 	@Autowired 
 	private CustomUserDetailsService userService;
@@ -131,7 +138,7 @@ public class TransctionController {
 		try {
 			
 			transctions.stream().forEach(t->{
-			ResponseEntity<Transction> res =  addTrasction(t);
+			ResponseEntity<Transction> res =  addTranactionInCart(t);
 			if(res.getStatusCode() == HttpStatus.NOT_ACCEPTABLE) {
 				unSuccessFulTrns.add(res.getBody());
 			}
@@ -177,6 +184,141 @@ public class TransctionController {
 		}
 		
 	}
-
-
+	
+	
+	@PostMapping("/update/carted")
+	public ResponseEntity<Transction> updateTranactionFromCart(@RequestBody Transction transction) {
+		
+		try {
+			Product product = new Product();
+			product.setId(transction.getProductId());
+				Cart cart = cartRepo.getCartByUserId(SecurityContextHolder.getContext().getAuthentication().getName());
+				if(cart == null) {
+					return new ResponseEntity<Transction>(HttpStatus.NOT_FOUND);
+				}
+			
+				cart.setLastModifiedDate(new Date());
+				Transction duplicateTrns = cart.getDuplicateTransction(transction);
+				
+				if(duplicateTrns == null) {
+					return new ResponseEntity<Transction>(HttpStatus.NOT_FOUND);
+				}
+				double delta = transction.getQuantity()-Config.format(duplicateTrns.getQuantityBack(), Config.QTY_FORMATTER);
+				if (transction.getType() == TransctionType.ADD) {
+					product = pRepo.findById(product.getId()).get();
+					
+				} else if (transction.getType() == TransctionType.DISPATCH) {
+						 product = pRepo.editCarted(product, TransctionType.DISPATCH, delta ,cart);
+						 if(product == null) {
+								return new ResponseEntity<Transction>(transction,HttpStatus.NOT_ACCEPTABLE);
+						 }
+						 
+				}
+				if( transction.getQuantity() == 0) {
+					cart.getTransctions().remove(duplicateTrns);
+				}
+				else {
+				duplicateTrns.setQuantityBack((long)(transction.getQuantity()*Config.QTY_FORMATTER));
+				}
+				cartRepo.save(cart);
+				return new ResponseEntity<Transction>(HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<Transction>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+	
+	
+	@PostMapping("/carted")
+	public ResponseEntity<Transction> addTranactionInCart(@RequestBody Transction transction) {
+		
+		try {
+			Product product = new Product();
+			product.setId(transction.getProductId());
+				transction.setAddBy(SecurityContextHolder.getContext().getAuthentication().getName());
+				Cart cart = cartRepo.getCartByUserId(SecurityContextHolder.getContext().getAuthentication().getName());
+				if(cart == null) {
+					cart = new Cart();
+					cart.setUserId(SecurityContextHolder.getContext().getAuthentication().getName());
+					cart = cartRepo.save(cart);
+				}
+			
+				cart.setLastModifiedDate(new Date());
+				
+				if (transction.getType() == TransctionType.ADD) {
+					transction.setAdtable(true);
+					product = pRepo.findById(product.getId()).get();
+					
+				} else if (transction.getType() == TransctionType.DISPATCH) {
+					if(cart.getTransctions()!=null) {
+					Optional<Transction> duplicateTrns = cart.getTransctions().stream()
+							.filter(t -> t.getProductId().equals(transction.getProductId()) && t.getType().equals(TransctionType.DISPATCH)).findFirst(); 
+					if (duplicateTrns.isPresent()) {
+						product = pRepo.editCarted(product, TransctionType.DISPATCH, transction.getQuantity(), cart);
+					} else {
+						product = pRepo.addCarted(product, TransctionType.DISPATCH, transction.getQuantity(), cart);
+					}
+					}else {
+						product = pRepo.addCarted(product, TransctionType.DISPATCH, transction.getQuantity(), cart);
+					}
+					
+					if (product == null) {
+						return new ResponseEntity<Transction>(transction, HttpStatus.NOT_ACCEPTABLE);
+					}	 
+				}
+				transction.setAmountBack((long)(transction.getAmount()*Config.PRICE_FORMATTER));
+				transction.setQuantityBack((long)(transction.getQuantity()*Config.QTY_FORMATTER));
+				transction.setProductName(product.getName());
+				cart.addTransction(transction);
+				cartRepo.save(cart);
+				return new ResponseEntity<Transction>(HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<Transction>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+	
+	
+	@GetMapping("/getCart")
+	public ResponseEntity<List<Transction>> getCart() {
+		
+		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		if(userId != null) {
+			Cart cart = cartRepo.getCartByUserId(userId);
+			if(cart != null) {
+			return new ResponseEntity<List<Transction>>(cart.getTransctions(),HttpStatus.OK);
+			}
+			else {
+				return new ResponseEntity<List<Transction>>(HttpStatus.NOT_FOUND);
+			}	
+		}
+		else {
+			return new ResponseEntity<List<Transction>>(HttpStatus.NOT_FOUND);
+		}
+		
+	}
+	
+	@PostMapping("/dispatch/Cart")
+	public ResponseEntity<Void> dispatchCart() {
+		
+		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+		
+		if(userId == null) {
+			return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
+		}	
+		Cart cart = cartRepo.getCartByUserId(userId);
+		if(cart == null) {
+			return new ResponseEntity<Void>(HttpStatus.NOT_ACCEPTABLE);
+		}
+		cart.getTransctions().stream().forEach(t->{
+		if(t.getType() == TransctionType.DISPATCH) {	
+		pRepo.deleteCarted(t.getProductId(), cart.getId());
+		}
+		});
+		tRepo.saveAll(cart.getTransctions());
+		cartRepo.delete(cart);	
+		return new ResponseEntity<Void>(HttpStatus.OK);
+	}
+	
 }

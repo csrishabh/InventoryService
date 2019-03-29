@@ -2,12 +2,11 @@ package com.mongo.demo.document;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import com.mongo.utility.Config;
 
 @Document
 public class Product implements Serializable {
@@ -46,6 +45,8 @@ public class Product implements Serializable {
 	private String lstAdtBy;
 
 	private Date lstAdtDate;
+	
+	private List<Carted> carted;
 
 	public Product() {
 		
@@ -153,5 +154,11 @@ public class Product implements Serializable {
 	}
 	public void setQtyAblBack(long qtyAblBack) {
 		this.qtyAblBack = qtyAblBack;
+	}
+	public List<Carted> getCarted() {
+		return carted;
+	}
+	public void setCarted(List<Carted> carted) {
+		this.carted = carted;
 	}
 }
