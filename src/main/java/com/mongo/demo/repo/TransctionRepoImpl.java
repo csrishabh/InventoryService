@@ -20,7 +20,7 @@ public class TransctionRepoImpl implements TransctionRepoCustom {
 	@Override
 	public List<Transction> getAuditPandingTransction(Date startDate, Date endDate) {
 
-		Criteria regex = Criteria.where("isAdtable").is(true).andOperator(Criteria.where("isAdtDone").is(false),Criteria.where("date").gte(startDate)
+		Criteria regex = Criteria.where("isAdtable").is(true).andOperator(Criteria.where("isAdtDone").is(false),Criteria.where("isDeleted").ne(true),Criteria.where("date").gte(startDate)
 			    ,Criteria.where("date").lte(endDate));
 		return mongoTemplate.find(new Query().addCriteria(regex), Transction.class);
 	}

@@ -47,6 +47,8 @@ public class Product implements Serializable {
 	private Date lstAdtDate;
 	
 	private List<Carted> carted;
+	
+	private List<Assigned> assigned;
 
 	public Product() {
 		
@@ -161,4 +163,10 @@ public class Product implements Serializable {
 	public void setCarted(List<Carted> carted) {
 		this.carted = carted;
 	}
+	public List<Assigned> getAssigned() {
+		return assigned;
+	}
+	public void setAssigned(List<Assigned> assigned) {
+		this.assigned = assigned;
+	}	
 }

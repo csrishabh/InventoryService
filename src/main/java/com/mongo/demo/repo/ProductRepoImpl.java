@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import com.mongo.demo.document.Assigned;
 import com.mongo.demo.document.Cart;
 import com.mongo.demo.document.Carted;
 import com.mongo.demo.document.Product;
@@ -38,12 +39,12 @@ public class ProductRepoImpl implements ProductRepoCustom {
 			
 			if(type == TransctionType.ADD) {
 			query.addCriteria(Criteria.where("id").is(product.getId()));	
+			update.inc("qtyAblBack", (long)(qty*Config.QTY_FORMATTER));
 			update.set("lstAddBy", product.getLstAddBy());
 			update.set("lstAddDate", product.getLstAddDate());
 			}
 			else if(type == TransctionType.AUDIT) {
-				query.addCriteria(Criteria.where("id").is(product.getId()));	
-				update.inc("qtyAblBack", (long)(qty*Config.QTY_FORMATTER));
+				query.addCriteria(Criteria.where("id").is(product.getId()));
 				update.set("lstAdtBy", product.getLstAdtBy());
 				update.set("lstAdtDate", new Date());
 				update.set("lastPriceBack", product.getLastPriceBack());
@@ -105,6 +106,35 @@ public class ProductRepoImpl implements ProductRepoCustom {
 		FindAndModifyOptions options = new FindAndModifyOptions();
 		options.returnNew(true);
 		mongoTemplate.upsert(query, update, Product.class);
+	}
+
+
+	@Override
+	public Product addAssigned(String userId, String productId, double qty) {
+		
+		Query query = new Query();
+		Update update = new Update();
+		query.addCriteria(Criteria.where("id").is(productId).and("qtyAblBack").gte((long)(qty*Config.QTY_FORMATTER)).and("assigned.userId").is(userId));
+		if(mongoTemplate.find(query, Product.class)!=null) {
+			update.inc("qtyAblBack", (long)(-qty*Config.QTY_FORMATTER));
+			update.inc("assigned.$.qtyBack", (long)(qty*Config.QTY_FORMATTER));
+			FindAndModifyOptions options = new FindAndModifyOptions();
+			options.returnNew(true);
+			return mongoTemplate.findAndModify(query, update, options,Product.class);
+		}
+		else {
+			query.addCriteria(Criteria.where("id").is(productId).and("qtyAblBack").gte((long)(qty*Config.QTY_FORMATTER)));
+			update.inc("qtyAblBack", (long	)(-qty*Config.QTY_FORMATTER));
+			Assigned assign = new Assigned();
+			assign.setUserId(userId);
+			assign.setQtyBack((long	)(qty*Config.QTY_FORMATTER));
+			update.push("assigned", assign);
+			FindAndModifyOptions options = new FindAndModifyOptions();
+			options.returnNew(true);
+			return mongoTemplate.findAndModify(query, update, options,Product.class);
+		}
+		
+		
 	}
 
 }

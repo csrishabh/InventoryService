@@ -4,6 +4,8 @@ public enum TransctionType {
 	
    ADD,
    DISPATCH,
-   AUDIT
+   AUDIT,
+   ASSIGN,
+   RETURN
 
 }

@@ -39,12 +39,18 @@ public class Transction implements Serializable {
 	private String addBy;
 
 	private String adtBy;
+	
+	private String assignTo;
+	
+	private String dltBy;
 
 	private Date adtDate;
 
 	private boolean isAdtable;
 
 	private boolean isAdtDone;
+	
+	private boolean isDeleted;
 
 	public Transction(String productId, double quantity, TransctionType type, Date date, double amount) {
 
@@ -169,6 +175,30 @@ public class Transction implements Serializable {
 
 	public void setProductName(String productName) {
 		this.productName = productName;
+	}
+
+	public boolean isDeleted() {
+		return isDeleted;
+	}
+
+	public void setDeleted(boolean isDeleted) {
+		this.isDeleted = isDeleted;
+	}
+
+	public String getDltBy() {
+		return dltBy;
+	}
+
+	public void setDltBy(String dltBy) {
+		this.dltBy = dltBy;
+	}
+
+	public String getAssignTo() {
+		return assignTo;
+	}
+
+	public void setAssignTo(String assignTo) {
+		this.assignTo = assignTo;
 	}
 	
 }

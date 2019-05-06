@@ -6,24 +6,26 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mongo.demo.document.Cart;
+import com.mongo.demo.document.Order;
 import com.mongo.demo.document.Product;
 import com.mongo.demo.document.Transction;
 import com.mongo.demo.document.TransctionType;
 import com.mongo.demo.document.User;
 import com.mongo.demo.repo.CartRepo;
+import com.mongo.demo.repo.OrderRepo;
 import com.mongo.demo.repo.ProductRepo;
 import com.mongo.demo.repo.TransctionRepo;
 import com.mongo.demo.service.CustomUserDetailsService;
@@ -48,45 +50,19 @@ public class TransctionController {
 	
 	@Autowired
 	private EmailService emailService;
-
-	@PostMapping("/addTransction")
-	public ResponseEntity<Transction> addTrasction(@RequestBody Transction transction) {
-		try {
-			Product product = new Product();
-			product.setId(transction.getProductId());
-				transction.setAddBy(SecurityContextHolder.getContext().getAuthentication().getName());
-				if (transction.getType() == TransctionType.ADD) {
-					transction.setAdtable(true);
-					product.setLstAddDate(new Date());
-					product.setLstAddBy(SecurityContextHolder.getContext().getAuthentication().getName());
-					product = pRepo.updateProduct(product, TransctionType.ADD, transction.getQuantity());
-					if(product == null) {
-						return new ResponseEntity<Transction>(HttpStatus.NOT_FOUND);
-					}
-				} else if (transction.getType() == TransctionType.DISPATCH) {
-						 product = pRepo.updateProduct(product, TransctionType.DISPATCH, transction.getQuantity());
-						 if(product == null) {
-								return new ResponseEntity<Transction>(transction,HttpStatus.NOT_ACCEPTABLE);
-				}
-					if(product.getQtyAblBack() < product.getAlertBack()) {
-						emailService.sendAlertMail(product);
-					}
-				}
-				transction.setAmountBack((long)(transction.getAmount()*Config.PRICE_FORMATTER));
-				transction.setQuantityBack((long)(transction.getQuantity()*Config.QTY_FORMATTER));
-				Transction t = tRepo.save(transction);
-				return new ResponseEntity<Transction>(t, HttpStatus.CREATED);
-		} catch (Exception e) {
-			return new ResponseEntity<Transction>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
 	
+	@Autowired
+	OrderRepo orderRepo;
+
 	
 	@PostMapping("/delTransction")
 	public ResponseEntity<Transction> deleteTrasction(@RequestBody Transction transction) {
 		try {
 			if(transction.getId()!=null) {
-				Transction t = tRepo.deleteTransction(transction);
+				transction = tRepo.findById(transction.getId()).get();
+				transction.setDltBy(SecurityContextHolder.getContext().getAuthentication().getName());
+				transction.setDeleted(true);
+				Transction t = tRepo.save(transction);
 				if(t == null) {
 					return new ResponseEntity<Transction>(HttpStatus.NOT_ACCEPTABLE);
 				}
@@ -212,7 +188,9 @@ public class TransctionController {
 						 if(product == null) {
 								return new ResponseEntity<Transction>(transction,HttpStatus.NOT_ACCEPTABLE);
 						 }
-						 
+						 if(product.getQtyAblBack() < product.getAlertBack()) {
+								emailService.sendAlertMail(product);
+						}		 
 				}
 				if( transction.getQuantity() == 0) {
 					cart.getTransctions().remove(duplicateTrns);
@@ -254,17 +232,19 @@ public class TransctionController {
 					Optional<Transction> duplicateTrns = cart.getTransctions().stream()
 							.filter(t -> t.getProductId().equals(transction.getProductId()) && t.getType().equals(TransctionType.DISPATCH)).findFirst(); 
 					if (duplicateTrns.isPresent()) {
-						product = pRepo.editCarted(product, TransctionType.DISPATCH, transction.getQuantity(), cart);
+						product = pRepo.editCarted(product, transction.getType(), transction.getQuantity(), cart);
 					} else {
-						product = pRepo.addCarted(product, TransctionType.DISPATCH, transction.getQuantity(), cart);
+						product = pRepo.addCarted(product, transction.getType(), transction.getQuantity(), cart);
 					}
 					}else {
-						product = pRepo.addCarted(product, TransctionType.DISPATCH, transction.getQuantity(), cart);
+						product = pRepo.addCarted(product, transction.getType(), transction.getQuantity(), cart);
 					}
-					
 					if (product == null) {
 						return new ResponseEntity<Transction>(transction, HttpStatus.NOT_ACCEPTABLE);
-					}	 
+					}
+					else if(product.getQtyAblBack() < product.getAlertBack()) {
+						emailService.sendAlertMail(product);
+					}
 				}
 				transction.setAmountBack((long)(transction.getAmount()*Config.PRICE_FORMATTER));
 				transction.setQuantityBack((long)(transction.getQuantity()*Config.QTY_FORMATTER));
@@ -276,6 +256,19 @@ public class TransctionController {
 			return new ResponseEntity<Transction>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
+	}
+	
+	@PostMapping("/assign/{userId}")
+	public ResponseEntity<Transction> assignTranaction(@PathVariable("userId") String userId, @RequestBody Transction transction) {
+		
+		Product p = pRepo.addAssigned(userId, transction.getProductId(), transction.getQuantity());
+		
+		if(p==null) {
+			return new ResponseEntity<Transction>(transction, HttpStatus.NOT_ACCEPTABLE);
+		}
+		else {
+			return new ResponseEntity<Transction>(transction, HttpStatus.OK);
+		}
 	}
 	
 	
@@ -314,9 +307,19 @@ public class TransctionController {
 		cart.getTransctions().stream().forEach(t->{
 		if(t.getType() == TransctionType.DISPATCH) {	
 		pRepo.deleteCarted(t.getProductId(), cart.getId());
+		}else if(t.getType() == TransctionType.ADD){
+		Product p = new Product();	
+		p.setId(t.getProductId());
+		p.setLstAddBy(userId);
+		p.setLstAddDate(t.getDate());
+		pRepo.updateProduct(p,t.getType(), Config.format(t.getQuantityBack(),Config.QTY_FORMATTER));	
 		}
 		});
-		tRepo.saveAll(cart.getTransctions());
+		Order order = new Order();
+		order.setUserId(userId);
+		order.setTransctions(cart.getTransctions());
+		order.setDate(new Date());
+		orderRepo.save(order);
 		cartRepo.delete(cart);	
 		return new ResponseEntity<Void>(HttpStatus.OK);
 	}

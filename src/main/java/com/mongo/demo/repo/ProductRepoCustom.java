@@ -15,6 +15,8 @@ public interface ProductRepoCustom{
 	 Product addCarted(Product product, TransctionType type , double qty ,Cart cart);
 	 
 	 void deleteCarted(String productId, String cartId);
+	 
+	 Product addAssigned(String userid,String productId, double qty);
 	 	 
 	 Product editCarted(Product product, TransctionType type , double qty ,Cart cart);
 }
