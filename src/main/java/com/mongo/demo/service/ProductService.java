@@ -16,10 +16,19 @@ public class ProductService {
 	@Autowired
 	ProductRepo repo;
 	
-	
-	public Page<Product> SearchProducts(int pageNo) {
-		
-		Pageable p = PageRequest.of(pageNo, 10, Direction.ASC,"name");
+	public Page<Product> SearchProducts(int pageNo, boolean reverseOrder, String orderBy) {
+		Pageable p;
+		if(orderBy!=null && !orderBy.equals("")) {
+			if(reverseOrder) {
+				p = PageRequest.of(pageNo, 10, Direction.DESC,orderBy.trim());
+			}
+			else {
+				p = PageRequest.of(pageNo, 10, Direction.ASC,orderBy.trim());
+			}
+		}
+		else {
+			p = PageRequest.of(pageNo, 10);
+		}
 		return repo.findAll(p);
 	}
 

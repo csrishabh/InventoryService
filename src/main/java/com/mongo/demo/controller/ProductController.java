@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mongo.demo.document.Product;
@@ -80,9 +81,9 @@ public class ProductController {
 	}
 	
 	@GetMapping("/searchProducts/{pageNo}")
-	public Page<Product> getProducts(@PathVariable("pageNo") int pageNo) {
-		
-		Page<Product> products = productService.SearchProducts(pageNo);
+	public Page<Product> getProducts(@PathVariable("pageNo") int pageNo, @RequestParam(value = "reverseSort", required=false) final boolean reverseSort,
+			@RequestParam(value = "orderBy", required=false) final String orderByField) {
+		Page<Product> products = productService.SearchProducts(pageNo,reverseSort,orderByField);
 		formatProducts(products.getContent());
 		return products;
 	}
