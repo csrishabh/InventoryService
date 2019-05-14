@@ -199,7 +199,7 @@ public class TransctionController {
 				duplicateTrns.setQuantityBack((long)(transction.getQuantity()*Config.QTY_FORMATTER));
 				}
 				cartRepo.save(cart);
-				return new ResponseEntity<Transction>(HttpStatus.CREATED);
+				return new ResponseEntity<Transction>(duplicateTrns,HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<Transction>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}

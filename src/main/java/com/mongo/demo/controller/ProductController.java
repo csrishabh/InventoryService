@@ -82,8 +82,8 @@ public class ProductController {
 	
 	@GetMapping("/searchProducts/{pageNo}")
 	public Page<Product> getProducts(@PathVariable("pageNo") int pageNo, @RequestParam(value = "reverseSort", required=false) final boolean reverseSort,
-			@RequestParam(value = "orderBy", required=false) final String orderByField) {
-		Page<Product> products = productService.SearchProducts(pageNo,reverseSort,orderByField);
+			@RequestParam(value = "orderBy", required=false) final String orderByField , @RequestParam(value = "name", required=false) final String name) {
+		Page<Product> products = productService.SearchProducts(pageNo,reverseSort,orderByField,name);
 		formatProducts(products.getContent());
 		return products;
 	}
