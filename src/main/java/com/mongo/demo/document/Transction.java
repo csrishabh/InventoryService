@@ -45,12 +45,16 @@ public class Transction implements Serializable {
 	private String dltBy;
 
 	private Date adtDate;
+	
+	private Date dltDate;
 
 	private boolean isAdtable;
 
 	private boolean isAdtDone;
 	
 	private boolean isDeleted;
+	
+	private String remark;
 
 	public Transction(String productId, double quantity, TransctionType type, Date date, double amount) {
 
@@ -200,5 +204,22 @@ public class Transction implements Serializable {
 	public void setAssignTo(String assignTo) {
 		this.assignTo = assignTo;
 	}
+
+	public Date getDltDate() {
+		return dltDate;
+	}
+
+	public void setDltDate(Date dltDate) {
+		this.dltDate = dltDate;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+	
 	
 }

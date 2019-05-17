@@ -107,6 +107,27 @@ public class TransctionController {
 		
 	}
 	
+	@GetMapping("/transction")
+	public ResponseEntity<List<Transction>> getTransctions(@RequestParam Map<String, String> map) {
+		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+		try {
+			User user = userService.findUserByEmail(userId);
+			List<Transction> transctions = null;
+			if(user.getRoles().contains("ADMIN")) {
+				transctions = tRepo.getAllTransction(formatter.parse(map.get("startDate")), formatter.parse(map.get("endDate")));
+			}
+			else {
+				transctions = tRepo.getTransctionByUser(formatter.parse(map.get("startDate")), formatter.parse(map.get("endDate")),userId);
+			}
+			return new ResponseEntity<List<Transction>>(transctions, HttpStatus.OK);
+		}
+		catch (Exception e) {
+			return new ResponseEntity<List<Transction>>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+	}
+	
 	
 	@PostMapping("/addTransctions")
 	public ResponseEntity<List<Transction>> saveTransctions( @RequestBody List<Transction> transctions) {
@@ -268,6 +289,37 @@ public class TransctionController {
 		}
 		else {
 			return new ResponseEntity<Transction>(transction, HttpStatus.OK);
+		}
+	}
+	
+	@PostMapping("/revert")
+	public ResponseEntity<Transction> revertTranaction(@RequestBody Transction transction) {
+
+		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+		Optional<Transction> trns = tRepo.findById(transction.getId());
+
+		if (trns.isPresent()) {
+
+			Transction orgTrns = trns.get();
+			Product product = pRepo.findById(orgTrns.getProductId()).get();
+			if (orgTrns.getType() == TransctionType.ADD) {
+
+				pRepo.updateProduct(product, TransctionType.REVERT,
+						-Config.format(orgTrns.getQuantityBack(), Config.QTY_FORMATTER));
+			} else if (orgTrns.getType() == TransctionType.DISPATCH) {
+
+				pRepo.updateProduct(product, TransctionType.REVERT,
+						Config.format(orgTrns.getQuantityBack(), Config.QTY_FORMATTER));
+			}
+			orgTrns.setRemark(transction.getRemark());
+			orgTrns.setDeleted(true);
+			orgTrns.setDltBy(userId);
+			orgTrns.setType(TransctionType.REVERT);
+			tRepo.save(orgTrns);
+			return new ResponseEntity<Transction>(orgTrns, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<Transction>(HttpStatus.NOT_FOUND);
 		}
 	}
 	

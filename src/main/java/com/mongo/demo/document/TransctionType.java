@@ -6,6 +6,7 @@ public enum TransctionType {
    DISPATCH,
    AUDIT,
    ASSIGN,
-   RETURN
+   RETURN,
+   REVERT
 
 }

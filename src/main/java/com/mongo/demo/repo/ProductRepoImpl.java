@@ -53,6 +53,10 @@ public class ProductRepoImpl implements ProductRepoCustom {
 				query.addCriteria(Criteria.where("id").is(product.getId()).and("qtyAblBack").gte((long)(qty*Config.QTY_FORMATTER)));
 				update.inc("qtyAblBack", (long	)(-qty*Config.QTY_FORMATTER));
 			}
+			else if(type == TransctionType.REVERT){
+				query.addCriteria(Criteria.where("id").is(product.getId()));
+				update.inc("qtyAblBack", (long)(qty*Config.QTY_FORMATTER));
+			}
 			FindAndModifyOptions options = new FindAndModifyOptions();
 			options.returnNew(true);
 			return mongoTemplate.findAndModify(query, update, options,Product.class);
