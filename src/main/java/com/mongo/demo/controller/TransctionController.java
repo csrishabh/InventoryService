@@ -315,7 +315,6 @@ public class TransctionController {
 			orgTrns.setRemark(transction.getRemark());
 			orgTrns.setDeleted(true);
 			orgTrns.setDltBy(userId);
-			orgTrns.setType(TransctionType.REVERT);
 			tRepo.save(orgTrns);
 			return new ResponseEntity<Transction>(orgTrns, HttpStatus.OK);
 		} else {
