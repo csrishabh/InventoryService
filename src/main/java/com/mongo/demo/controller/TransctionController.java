@@ -209,9 +209,9 @@ public class TransctionController {
 						 if(product == null) {
 								return new ResponseEntity<Transction>(transction,HttpStatus.NOT_ACCEPTABLE);
 						 }
-						 if(product.getQtyAblBack() < product.getAlertBack()) {
+						 /*if(product.getQtyAblBack() < product.getAlertBack()) {
 								emailService.sendAlertMail(product);
-						}		 
+						}	*/	 
 				}
 				if( transction.getQuantity() == 0) {
 					cart.getTransctions().remove(duplicateTrns);
@@ -263,9 +263,9 @@ public class TransctionController {
 					if (product == null) {
 						return new ResponseEntity<Transction>(transction, HttpStatus.NOT_ACCEPTABLE);
 					}
-					else if(product.getQtyAblBack() < product.getAlertBack()) {
+					/*else if(product.getQtyAblBack() < product.getAlertBack()) {
 						emailService.sendAlertMail(product);
-					}
+					}*/
 				}
 				transction.setAmountBack((long)(transction.getAmount()*Config.PRICE_FORMATTER));
 				transction.setQuantityBack((long)(transction.getQuantity()*Config.QTY_FORMATTER));
