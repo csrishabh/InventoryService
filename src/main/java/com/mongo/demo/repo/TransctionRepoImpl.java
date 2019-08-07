@@ -20,7 +20,7 @@ public class TransctionRepoImpl implements TransctionRepoCustom {
 	@Override
 	public List<Transction> getAuditPandingTransction(Date startDate, Date endDate) {
 
-		Criteria regex = Criteria.where("isAdtable").is(true).andOperator(Criteria.where("isAdtDone").is(false),Criteria.where("date").gte(startDate)
+		Criteria regex = Criteria.where("isAdtable").is(true).andOperator(Criteria.where("isAdtDone").is(false),Criteria.where("isDeleted").ne(true),Criteria.where("date").gte(startDate)
 			    ,Criteria.where("date").lte(endDate));
 		return mongoTemplate.find(new Query().addCriteria(regex), Transction.class);
 	}
@@ -33,8 +33,8 @@ public class TransctionRepoImpl implements TransctionRepoCustom {
 		
 		if(t.getType() == TransctionType.AUDIT){
 			query.addCriteria(Criteria.where("id").is(t.getId()).and("isAdtDone").is(false));
-			update.inc("quantity", t.getQuantity());
-			update.set("amount", t.getAmount());
+			update.set("quantityBack", t.getQuantityBack());
+			update.set("amountBack", t.getAmountBack());
 			update.set("isAdtDone", true);
 			update.set("adtDate", new Date());
 			update.set("adtBy", t.getAdtBy());
@@ -42,6 +42,27 @@ public class TransctionRepoImpl implements TransctionRepoCustom {
 		
 		return mongoTemplate.findAndModify(query, update, Transction.class);
 		
+	}
+
+	@Override
+	public Transction deleteTransction(Transction t) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("id").is(t.getId()).and("isAdtDone").is(false));
+		return mongoTemplate.findAndRemove(query, Transction.class);
+	}
+
+	@Override
+	public List<Transction> getTransctionByUser(Date startDate, Date endDate, String userID) {
+		Criteria regex = Criteria.where("addBy").is(userID).andOperator(Criteria.where("isDeleted").ne(true),Criteria.where("date").gte(startDate)
+			    ,Criteria.where("date").lte(endDate));
+		return mongoTemplate.find(new Query().addCriteria(regex), Transction.class);
+	}
+
+	@Override
+	public List<Transction> getAllTransction(Date startDate, Date endDate) {
+		Criteria regex = Criteria.where("isDeleted").ne(true).andOperator(Criteria.where("date").gte(startDate)
+			    ,Criteria.where("date").lte(endDate));
+		return mongoTemplate.find(new Query().addCriteria(regex), Transction.class);
 	}
 
 }

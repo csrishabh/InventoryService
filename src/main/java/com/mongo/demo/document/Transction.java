@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
@@ -17,25 +18,43 @@ public class Transction implements Serializable {
 	@Id
 	private String id;
 
+	@Transient
 	private double quantity;
+	
+	private long quantityBack;
 
 	private TransctionType type;
 
 	private String productId;
-
+	
+	private String productName;
+	
+	@Transient
 	private double amount;
+	
+	private long amountBack;
 
 	private Date date;
 
 	private String addBy;
 
 	private String adtBy;
+	
+	private String assignTo;
+	
+	private String dltBy;
 
 	private Date adtDate;
+	
+	private Date dltDate;
 
 	private boolean isAdtable;
 
 	private boolean isAdtDone;
+	
+	private boolean isDeleted;
+	
+	private String remark;
 
 	public Transction(String productId, double quantity, TransctionType type, Date date, double amount) {
 
@@ -138,4 +157,69 @@ public class Transction implements Serializable {
 		this.amount = amount;
 	}
 
+	public long getQuantityBack() {
+		return quantityBack;
+	}
+
+	public void setQuantityBack(long quantityBack) {
+		this.quantityBack = quantityBack;
+	}
+
+	public long getAmountBack() {
+		return amountBack;
+	}
+
+	public void setAmountBack(long amountBack) {
+		this.amountBack = amountBack;
+	}
+
+	public String getProductName() {
+		return productName;
+	}
+
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}
+
+	public boolean isDeleted() {
+		return isDeleted;
+	}
+
+	public void setDeleted(boolean isDeleted) {
+		this.isDeleted = isDeleted;
+	}
+
+	public String getDltBy() {
+		return dltBy;
+	}
+
+	public void setDltBy(String dltBy) {
+		this.dltBy = dltBy;
+	}
+
+	public String getAssignTo() {
+		return assignTo;
+	}
+
+	public void setAssignTo(String assignTo) {
+		this.assignTo = assignTo;
+	}
+
+	public Date getDltDate() {
+		return dltDate;
+	}
+
+	public void setDltDate(Date dltDate) {
+		this.dltDate = dltDate;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+	
+	
 }
