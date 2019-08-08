@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mongo.demo.document.Product;
 import com.mongo.demo.repo.ProductRepo;
+import com.mongo.demo.service.EmailService;
 import com.mongo.demo.service.ProductService;
 import com.mongo.utility.Config;
 
@@ -28,10 +29,14 @@ public class ProductController {
 	
 	@Autowired
 	ProductService productService;
+	
+	@Autowired
+	EmailService emailService;
 
 	@GetMapping("/test")
 	public String test() {
-
+		Product p = repo.findById("5c4b4a525b599c0004668d93").get();
+		emailService.sendAlertMail(p);
 		return "This is Mongo API";
 	}
 	
