@@ -94,6 +94,33 @@ public class CaseService {
 		return response;
 	}
 	
+	
+	public AppResponse<Void> updateCase(Case report){
+		AppResponse<Void> response = new AppResponse<>();
+		try {
+			Case c = caseRepo.findById(report.getId()).get();
+			if(!c.getOpdNo().equals(report.getOpdNo()) || !DateUtils.isSameDay(c.getBookingDate(), report.getBookingDate())) {
+				response.setSuccess(false);
+				response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+			}
+			else if(c.getVersion()!= report.getVersion()) {
+				response.setSuccess(false);
+				response.setMsg(Arrays.asList(StringConstant.CASE_ALREADY_UPDATED));
+			}
+			else {
+				caseRepo.save(report);
+				response.setSuccess(true);
+				response.setMsg(Arrays.asList(report.getOpdNo() + StringConstant.CASE_UPDATED_SUCCESS));
+			}
+		}
+		catch (Exception e) {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+		}
+		
+		return response;
+	}
+	
 	public List<CaseSearchResult> getCaseHistory(Map<String, Object> filters){
 		
 		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -231,6 +258,30 @@ public class CaseService {
 		}
 		return response;
 		
+	}
+	
+	public AppResponse<Case> getLatestCase(String OpdNo){
+		AppResponse<Case> response = new AppResponse<>();
+		Map<String, Object> filter = new HashMap<>();
+		try {
+		filter.put("opdNo", OpdNo);
+		List<CaseSearchResult> cases =  caseRepo.findAllLatestCase(filter);
+		if(null != cases && cases.size() > 0) {
+		Case c = cases.get(0).getCase();
+		response.setSuccess(true);
+		response.setData(c);
+		}
+		else {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.CASE_NOT_FOUND));
+			
+		}
+		}
+		catch (Exception e) {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+		}
+		return response;
 	}
 
 }
