@@ -2,19 +2,16 @@ package com.mongo.demo.service;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import com.mongo.demo.document.AppResponse;
 import com.mongo.demo.document.Case;
@@ -62,13 +59,13 @@ public class CaseService {
 			return response;
 		}
 		if(null == report.getCrown() || null == report.getCrown().getDetails() 
-				|| report.getCrown().getDetails().size() == 0 || StringUtils.isEmpty(report.getCrown().getShade())) {
+				|| report.getCrown().getDetails().size() == 0) {
 			response.setSuccess(false);
 			response.setMsg(Arrays.asList(StringConstant.CROWN_NOT_FOUND));
 			return response;
 		}
 		
-		Case duplicateCase = caseRepo.getCaseByOpdAndVersionNo(report.getOpdNo(), 1);
+		Case duplicateCase = caseRepo.getCaseByOpdAndVersionNo(report.getOpdNo().toUpperCase(), 1 , Config.fomatDate(report.getBookingDate()));
 		
 		if(null != duplicateCase) {
 			response.setSuccess(false);
@@ -126,7 +123,7 @@ public class CaseService {
 		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userService.findUserByEmail(userId);
 		List<CaseSearchResult> cases ;
-		if(user.getRoles().contains("ADMIN")) {
+		if(user.getRoles().contains("ADMIN_CASE")) {
 			cases = caseRepo.findAllLatestCase(filters);
 		}
 		else {
@@ -137,19 +134,20 @@ public class CaseService {
 			}
 		});
 		}
-		final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MMM-yyyy hh.mm aa");
-		final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+		final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MM-yyyy hh.mm aa");
+		final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 		cases.stream().forEach(c ->{
 			c.setAppointmentDate(dateTimeFormat.format(c.getCase().getAppointmentDate()));
 			c.setBookingDate(dateFormat.format(c.getCase().getBookingDate()));
 			c.setDeliverdDate(dateFormat.format(c.getCase().getDeliveredDate()));
-			c.setPatientName(c.getCase().getPatient().getName());
-			c.setVendorName(c.getCase().getVender().getName());
-			c.setDoctorName(c.getCase().getDoctor().getName());
+			c.setPatientName(c.getCase().getPatient());
+			c.setVendorName(c.getCase().getVender().getFullname());
+			c.setDoctorName(c.getCase().getDoctor().getFullname());
 			c.setStatus(c.getCase().getStatus().toString());
 			c.setCreatedBy(c.getCase().getCreatedBy());
 			c.setActions(c.getCase().getnextActions());
 			c.setCrownDetails(c.getCase().getCrown().toString());
+			c.setId(c.getCase().getOpdNo());
 			c.setCase(null);
 		});
 		return cases;
@@ -161,12 +159,14 @@ public class CaseService {
 		AppResponse<Document> response = new AppResponse<>();
 		try {
 			List<Document> doc = caseRepo.findLateCaseCount();
+			response.setSuccess(true);
 			if(null != doc && doc.size() > 0 ) {
-				response.setSuccess(true);
 				response.setData(doc.get(0));
 			}
-			else {
-				response.setSuccess(false);
+			else if(doc.size() == 0){
+				Document d = new Document();
+				d.append("count", 0);
+				response.setData(d);
 			}	
 		}
 		catch (Exception e) {
@@ -182,7 +182,7 @@ public class CaseService {
 			String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 			User user = userService.findUserByEmail(userId);
 			List<CaseSearchResult> cases = caseRepo.findAllLateCase();
-			if(!user.getRoles().contains("ADMIN")) {
+			if(!user.getRoles().contains("ADMIN_CASE")) {
 				cases.stream().forEach(c->{
 					if(!DateUtils.isSameDay(c.getCase().getBookingDate(), new Date()) || c.getCase().getCreatedBy().equals(userId)){
 						c.setEditable(false);
@@ -191,19 +191,20 @@ public class CaseService {
 				});
 				
 			}
-			final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MMM-yyyy hh.mm aa");
-			final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy");
+			final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MM-yyyy hh.mm aa");
+			final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 			cases.stream().forEach(c ->{
 				c.setAppointmentDate(dateTimeFormat.format(c.getCase().getAppointmentDate()));
 				c.setBookingDate(dateFormat.format(c.getCase().getBookingDate()));
 				c.setDeliverdDate(dateFormat.format(c.getCase().getDeliveredDate()));
-				c.setPatientName(c.getCase().getPatient().getName());
-				c.setVendorName(c.getCase().getVender().getName());
-				c.setDoctorName(c.getCase().getDoctor().getName());
+				c.setPatientName(c.getCase().getPatient());
+				c.setVendorName(c.getCase().getVender().getFullname());
+				c.setDoctorName(c.getCase().getDoctor().getFullname());
 				c.setStatus(c.getCase().getStatus().toString());
 				c.setCreatedBy(c.getCase().getCreatedBy());
 				c.setActions(c.getCase().getnextActions());
 				c.setCrownDetails(c.getCase().getCrown().toString());
+				c.setId(c.getCase().getOpdNo());
 				c.setCase(null);
 			});
 			response.setSuccess(true);
@@ -260,11 +261,12 @@ public class CaseService {
 		
 	}
 	
-	public AppResponse<Case> getLatestCase(String OpdNo){
+	public AppResponse<Case> getLatestCase(String OpdNo , String date){
 		AppResponse<Case> response = new AppResponse<>();
 		Map<String, Object> filter = new HashMap<>();
 		try {
 		filter.put("opdNo", OpdNo);
+		filter.put("bookingDate1", date);
 		List<CaseSearchResult> cases =  caseRepo.findAllLatestCase(filter);
 		if(null != cases && cases.size() > 0) {
 		Case c = cases.get(0).getCase();

@@ -39,9 +39,9 @@ public class CaseController {
 		return caseService.updateCase(report);
 	}
 	
-	@GetMapping("/case/{OpdNo}")
-	public AppResponse<Case> getCase(@PathVariable("OpdNo") String OpdNo) {
-		return caseService.getLatestCase(OpdNo);
+	@GetMapping("/case/{OpdNo}/{date}")
+	public AppResponse<Case> getCase(@PathVariable("OpdNo") String OpdNo , @PathVariable("date") String date) {
+		return caseService.getLatestCase(OpdNo,date);
 	}
 	
 	

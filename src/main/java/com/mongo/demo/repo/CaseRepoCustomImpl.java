@@ -37,7 +37,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 		
 		
 		SortOperation sortByVersionAsc = Aggregation.sort(new Sort(Direction.DESC, "version"));	
-		GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo").first(Aggregation.ROOT).as("Case");
+		GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo","bookingDate").first(Aggregation.ROOT).as("Case");
 		SortOperation sortByBookingDate = Aggregation.sort(new Sort(Direction.DESC, "Case.bookingDate"));	
 		Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(applyFilter(filters)),sortByVersionAsc,getCaseWithMaxVersion,sortByBookingDate);
 		AggregationResults<CaseSearchResult> result = mongoTemplate.aggregate(aggregation, "case",CaseSearchResult.class);
@@ -112,13 +112,21 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 				break;
 			}
 			case "bookingDate1": {
-				if(!StringUtils.isEmpty(v) && !StringUtils.isEmpty(filters.get("bookingDate2")))
+				if(!StringUtils.isEmpty(v) && !StringUtils.isEmpty(filters.get("bookingDate2"))) {
 					try {
 						System.out.println(format.parse((String) v));
 						criteria.andOperator(Criteria.where("bookingDate").gte(format.parse((String) v)),Criteria.where("bookingDate").lte(format.parse((String) filters.get("bookingDate2"))));
 					} catch (ParseException e) {
 						
 					}
+				}
+				else if(!StringUtils.isEmpty(v)) {
+					try {
+						//criteria.andOperator(Criteria.where("bookingDate").is(format.parse((String) v)),Criteria.where("bookingDate").lte(format.parse((String) filters.get("bookingDate2"))));
+						criteria.and("bookingDate").is(format.parse((String) v));
+					} catch (ParseException e) {
+					}
+				}
 				break;
 			}
 			}

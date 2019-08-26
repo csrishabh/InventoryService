@@ -2,12 +2,13 @@ package com.mongo.demo.repo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import com.mongo.demo.document.Transction;
 
 public interface TransctionRepoCustom {
 	
-	public List<Transction> getAuditPandingTransction(Date startDate, Date endDate);
+	public List<Transction> getAuditPandingTransction( Map<String, Object> map);
 	
 	List<Transction> getTransctionByUser(Date startDate, Date endDate,String userID);
 	

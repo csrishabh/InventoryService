@@ -1,5 +1,6 @@
 package com.mongo.demo.repo;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -14,6 +15,6 @@ public interface CaseRepo extends MongoRepository<Case,String> ,CaseRepoCustom {
 	
 	public List<Case> getCaseByOpdNo(String opdNo);
 	
-	@Query("{'opdNo' : {$regex : ?0 , $options: 'i'}, version : ?1}")
-	public Case getCaseByOpdAndVersionNo(String opdNo, int versionNo);
+	@Query("{'opdNo' : ?0, version : ?1 , bookingDate : ?2 }")
+	public Case getCaseByOpdAndVersionNo(String opdNo, int versionNo, Date bookingDate);
 }

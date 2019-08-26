@@ -22,14 +22,14 @@ public class Case implements Serializable {
 	@Id
 	private String id;
 	
-	@DBRef
-	private Person patient;
+	
+	private String patient;
 	
 	@DBRef
-	private Person doctor;
+	private User doctor;
 	
 	@DBRef
-	private Person vender;
+	private User vender;
 	
 	@Indexed
 	private String opdNo;
@@ -61,27 +61,27 @@ public class Case implements Serializable {
 		this.id = id;
 	}
 
-	public Person getPatient() {
+	public String getPatient() {
 		return patient;
 	}
 
-	public void setPatient(Person patient) {
+	public void setPatient(String patient) {
 		this.patient = patient;
 	}
 
-	public Person getDoctor() {
+	public User getDoctor() {
 		return doctor;
 	}
 
-	public void setDoctor(Person doctor) {
+	public void setDoctor(User doctor) {
 		this.doctor = doctor;
 	}
 
-	public Person getVender() {
+	public User getVender() {
 		return vender;
 	}
 
-	public void setVender(Person vender) {
+	public void setVender(User vender) {
 		this.vender = vender;
 	}
 

@@ -73,7 +73,7 @@ public class ProductRepoImpl implements ProductRepoCustom {
 				Carted c = new Carted();
 				c.setCartId(cart.getId());
 				c.setQtyBack((long)(qty*Config.QTY_FORMATTER));
-				c.setTimeStamp(new Date());
+				c.setTimeStamp(Config.fomatDate(new Date()));
 				update.push("carted", c);
 			}
 			FindAndModifyOptions options = new FindAndModifyOptions();
@@ -91,7 +91,7 @@ public class ProductRepoImpl implements ProductRepoCustom {
 			query.addCriteria(Criteria.where("id").is(product.getId()).and("qtyAblBack").gte((long)(qty*Config.QTY_FORMATTER)).and("carted.cartId").is(cart.getId()));
 			update.inc("qtyAblBack", (long	)(-qty*Config.QTY_FORMATTER));
 			update.inc("carted.$.qtyBack", (long)(qty*Config.QTY_FORMATTER));
-			update.set("carted.$.timeStamp", new Date());
+			update.set("carted.$.timeStamp", Config.fomatDate(new Date()));
 			
 		}
 		FindAndModifyOptions options = new FindAndModifyOptions();
