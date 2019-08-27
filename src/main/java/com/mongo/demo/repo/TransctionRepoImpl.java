@@ -56,16 +56,14 @@ public class TransctionRepoImpl implements TransctionRepoCustom {
 	}
 
 	@Override
-	public List<Transction> getTransctionByUser(Date startDate, Date endDate, String userID) {
-		Criteria regex = Criteria.where("addBy").is(userID).andOperator(Criteria.where("isDeleted").ne(true),Criteria.where("date").gte(startDate)
-			    ,Criteria.where("date").lte(endDate));
+	public List<Transction> getTransctionByUser(Map<String, Object> map, String userID) {
+		Criteria regex = Criteria.where("addBy").is(userID).andOperator(Criteria.where("isDeleted").ne(true),applyFilter(map));
 		return mongoTemplate.find(new Query().addCriteria(regex), Transction.class);
 	}
 
 	@Override
-	public List<Transction> getAllTransction(Date startDate, Date endDate) {
-		Criteria regex = Criteria.where("isDeleted").ne(true).andOperator(Criteria.where("date").gte(startDate)
-			    ,Criteria.where("date").lte(endDate));
+	public List<Transction> getAllTransction(Map<String, Object> map) {
+		Criteria regex = Criteria.where("isDeleted").ne(true).andOperator(applyFilter(map));
 		return mongoTemplate.find(new Query().addCriteria(regex), Transction.class);
 	}
 	
@@ -75,8 +73,9 @@ public class TransctionRepoImpl implements TransctionRepoCustom {
 		filters.forEach((k,v)->{
 			switch(k) {
 			case "type": {
-				if(!StringUtils.isEmpty(v))
+				if(!StringUtils.isEmpty(v) && !((String) v).equalsIgnoreCase("ALL")) {
 				criteria.and(k).is(v);
+				}
 				break;
 			}
 			case "addBy": {

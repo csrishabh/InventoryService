@@ -108,17 +108,17 @@ public class TransctionController {
 	}
 	
 	@GetMapping("/transction")
-	public ResponseEntity<List<Transction>> getTransctions(@RequestParam Map<String, String> map) {
+	public ResponseEntity<List<Transction>> getTransctions(@RequestParam Map<String, Object> map) {
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 		try {
 			User user = userService.findUserByEmail(userId);
 			List<Transction> transctions = null;
 			if(user.getRoles().contains("ADMIN_INV")) {
-				transctions = tRepo.getAllTransction(formatter.parse(map.get("startDate")), formatter.parse(map.get("endDate")));
+				transctions = tRepo.getAllTransction(map);
 			}
 			else {
-				transctions = tRepo.getTransctionByUser(formatter.parse(map.get("startDate")), formatter.parse(map.get("endDate")),userId);
+				transctions = tRepo.getTransctionByUser(map,userId);
 			}
 			return new ResponseEntity<List<Transction>>(transctions, HttpStatus.OK);
 		}
