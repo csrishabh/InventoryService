@@ -4,8 +4,15 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -139,6 +146,39 @@ public class ProductRepoImpl implements ProductRepoCustom {
 		}
 		
 		
+	}
+	
+	public List<Product> getAllProduct(){
+		
+		Sort sort = Sort.by(Direction.ASC, "name");
+		Query query = new Query().with(sort);
+		query.collation(Collation.of("en").strength(Collation.ComparisonLevel.secondary()));
+		return mongoTemplate.find(query, Product.class);
+	}
+
+
+	public Page<Product> SearchProduct(int pageNo, boolean reverseOrder, String orderBy,String name) {
+		Pageable p;
+		if(orderBy!=null && !orderBy.equals("")) {
+			if(reverseOrder) {
+				p = PageRequest.of(pageNo, 10, Direction.DESC,orderBy.trim());
+			}
+			else {
+				p = PageRequest.of(pageNo, 10, Direction.ASC,orderBy.trim());
+			}
+		}
+		else {
+			p = PageRequest.of(pageNo, 10);
+		}
+		Query query = new Query();
+		if(name!=null && !name.equals("")) {
+		query.addCriteria(Criteria.where("name").regex(name, "i"));
+		}
+		query.with(p);
+		query.collation(Collation.of("en").strength(Collation.ComparisonLevel.secondary()));
+		long count = mongoTemplate.getCollection("product").count();
+		Page<Product> page = new PageImpl<>(mongoTemplate.find(query, Product.class), p, count);
+		return page;
 	}
 
 }
