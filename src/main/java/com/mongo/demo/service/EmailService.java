@@ -27,6 +27,7 @@ public class EmailService {
 	private String text;
 
 	public void sendAlertMail(Product product) {
+		try {
 		SimpleMailMessage message = new SimpleMailMessage();
 		message.setTo(emailIds.toArray(new String[emailIds.size()]));
 		message.setSubject(subject);
@@ -34,6 +35,10 @@ public class EmailService {
 				Config.format(product.getQtyAblBack(), Config.QTY_FORMATTER) + " " + product.getUnit().getName(),
 				Config.format(product.getAlertBack(),Config.QTY_FORMATTER) + " " + product.getUnit().getName()));
 		emailSender.send(message);
+		}
+		catch (Exception e) {
+			System.out.println("Unable to send mail "+ product.getName());
+		}
 
 	}
 
