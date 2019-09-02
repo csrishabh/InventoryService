@@ -1,6 +1,7 @@
 package com.mongo.demo.service;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Map;
 import org.apache.commons.lang3.time.DateUtils;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -72,6 +74,15 @@ public class CaseService {
 			response.setMsg(Arrays.asList(StringConstant.FOUND_DUPLICATE_CASE));
 			return response;
 		}
+		
+		AppResponse<String> patient = getPatientNameByOpdNo(report.getOpdNo());
+		
+		if(patient.isSuccess() && !report.getPatient().equalsIgnoreCase(patient.getData())) {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.FOUND_DUPLICATE_CASE));
+			return response;
+		}
+		
 		report.setOpdNo(report.getOpdNo().toUpperCase());
 		report.setBookingDate(Config.fomatDate(report.getBookingDate()));
 		report.setDeliveredDate(Config.fomatDate(report.getDeliveredDate()));
@@ -93,10 +104,11 @@ public class CaseService {
 	
 	
 	public AppResponse<Void> updateCase(Case report){
+		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 		AppResponse<Void> response = new AppResponse<>();
 		try {
 			Case c = caseRepo.findById(report.getId()).get();
-			if(!c.getOpdNo().equals(report.getOpdNo()) || !DateUtils.isSameDay(c.getBookingDate(), report.getBookingDate())) {
+			if(!c.getOpdNo().equals(report.getOpdNo()) || !DateUtils.isSameDay(c.getBookingDate(), report.getBookingDate()) || !c.getPatient().equalsIgnoreCase(report.getPatient())) {
 				response.setSuccess(false);
 				response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
 			}
@@ -105,6 +117,10 @@ public class CaseService {
 				response.setMsg(Arrays.asList(StringConstant.CASE_ALREADY_UPDATED));
 			}
 			else {
+				report.setId(null);
+				report.setUpdateBy(userId);
+				report.setUpdateDate(Config.fomatDate(new Date()));
+				report.setVersion(report.getVersion()+1);
 				caseRepo.save(report);
 				response.setSuccess(true);
 				response.setMsg(Arrays.asList(report.getOpdNo() + StringConstant.CASE_UPDATED_SUCCESS));
@@ -126,6 +142,11 @@ public class CaseService {
 		if(user.getRoles().contains("ADMIN_CASE")) {
 			cases = caseRepo.findAllLatestCase(filters);
 		}
+		else if(user.getRoles().contains("VENDOR")) {
+			filters.put("vender", user.getId());
+			filters.put("status", CaseStatus.INPROCESS.toString());
+			cases = caseRepo.findAllLatestCase(filters);
+		}
 		else {
 		cases = caseRepo.findAllLatestCaseByUser(user.getUsername(),filters);
 		cases.stream().forEach(c->{
@@ -145,7 +166,7 @@ public class CaseService {
 			c.setDoctorName(c.getCase().getDoctor().getFullname());
 			c.setStatus(c.getCase().getStatus().toString());
 			c.setCreatedBy(c.getCase().getCreatedBy());
-			c.setActions(c.getCase().getnextActions());
+			//c.setActions(c.getCase().getnextActions());
 			c.setCrownDetails(c.getCase().getCrown().toString());
 			c.setId(c.getCase().getOpdNo());
 			c.setCase(null);
@@ -176,13 +197,57 @@ public class CaseService {
 		return response;
 	}
 	
+	
+	public AppResponse<List<CaseSearchResult>> getCaseHistoryByOpdNo(String opdNo, String date){
+		AppResponse<List<CaseSearchResult>> response = new AppResponse<>();
+		try {
+			final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MM-yyyy hh.mm aa");
+			final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+			String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+			Date bookingDate = dateFormat.parse(date);
+			User user = userService.findUserByEmail(userId);
+			List<CaseSearchResult> result = new ArrayList<CaseSearchResult>();
+			
+			if(user.getRoles().contains("ADMIN_CASE")) {
+				Sort sort = new Sort(Sort.Direction.DESC, "version");
+				List<Case> cases = caseRepo.getCaseHistroy(opdNo,bookingDate,sort);
+				cases.stream().forEach(c ->{
+					CaseSearchResult r = new CaseSearchResult();
+					r.setAppointmentDate(dateTimeFormat.format(c.getAppointmentDate()));
+					r.setBookingDate(dateFormat.format(c.getBookingDate()));
+					r.setDeliverdDate(dateFormat.format(c.getDeliveredDate()));
+					r.setUpdateDate(dateFormat.format(c.getUpdateDate()));
+					r.setPatientName(c.getPatient());
+					r.setVendorName(c.getVender().getFullname());
+					r.setDoctorName(c.getDoctor().getFullname());
+					r.setStatus(c.getStatus().toString());
+					r.setUpdateBy(c.getUpdateBy());
+					r.setCrownDetails(c.getCrown().toString());
+					r.setId(c.getOpdNo());
+					result.add(r);
+				});
+				response.setSuccess(true);
+			    response.setData(result);
+			}
+			else {
+				response.setSuccess(false);
+				response.setMsg(Arrays.asList(StringConstant.CASE_NOT_FOUND));
+			}	
+		}
+		catch (Exception e) {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+		}
+		return response;
+	}
+	
 	public AppResponse<List<CaseSearchResult>> getAllLateCase(){
 		AppResponse<List<CaseSearchResult>> response = new AppResponse<>();
 		try {
-			String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-			User user = userService.findUserByEmail(userId);
+			//String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+			//User user = userService.findUserByEmail(userId);
 			List<CaseSearchResult> cases = caseRepo.findAllLateCase();
-			if(!user.getRoles().contains("ADMIN_CASE")) {
+			/*if(!user.getRoles().contains("ADMIN_CASE")) {
 				cases.stream().forEach(c->{
 					if(!DateUtils.isSameDay(c.getCase().getBookingDate(), new Date()) || c.getCase().getCreatedBy().equals(userId)){
 						c.setEditable(false);
@@ -190,7 +255,7 @@ public class CaseService {
 					
 				});
 				
-			}
+			}*/
 			final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MM-yyyy hh.mm aa");
 			final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 			cases.stream().forEach(c ->{
@@ -272,6 +337,30 @@ public class CaseService {
 		Case c = cases.get(0).getCase();
 		response.setSuccess(true);
 		response.setData(c);
+		}
+		else {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.CASE_NOT_FOUND));
+			
+		}
+		}
+		catch (Exception e) {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+		}
+		return response;
+	}
+	
+	public AppResponse<String> getPatientNameByOpdNo(String OpdNo){
+		AppResponse<String> response = new AppResponse<>();
+		Map<String, Object> filter = new HashMap<>();
+		try {
+		filter.put("opdNo", OpdNo);
+		List<CaseSearchResult> cases =  caseRepo.findAllLatestCase(filter);
+		if(null != cases && cases.size() > 0) {
+		Case c = cases.get(0).getCase();
+		response.setSuccess(true);
+		response.setData(c.getPatient());
 		}
 		else {
 			response.setSuccess(false);

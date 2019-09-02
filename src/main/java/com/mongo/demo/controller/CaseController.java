@@ -44,6 +44,11 @@ public class CaseController {
 		return caseService.getLatestCase(OpdNo,date);
 	}
 	
+	@GetMapping("/patient/{OpdNo}")
+	public AppResponse<String> getPatientNameByOpdNo(@PathVariable("OpdNo") String OpdNo) {
+		return caseService.getPatientNameByOpdNo(OpdNo);
+	}
+	
 	
 	@GetMapping("/get/cases")
 	public ResponseEntity<List<CaseSearchResult>> getCaseHistory(HttpServletRequest request, @RequestParam Map<String, Object> filters){
@@ -55,6 +60,11 @@ public class CaseController {
 			return new ResponseEntity<List<CaseSearchResult>>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
+	}
+	
+	@GetMapping("/case/history/{OpdNo}/{date}")
+	public AppResponse<List<CaseSearchResult>> getCaseHistoryByOpdNo(@PathVariable("OpdNo") String OpdNo ,@PathVariable("date") String date){
+		return caseService.getCaseHistoryByOpdNo(OpdNo,date);
 	}
 	
 	@GetMapping("/get/count/lateCase")

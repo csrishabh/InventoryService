@@ -19,6 +19,8 @@ public class CaseSearchResult {
 	private String crownDetails;
 	private String createdBy;
 	private String status;
+	private String updateDate;
+	private String updateBy;
 	private List<CaseStatus> actions  = new ArrayList<CaseStatus>();
 	private boolean isEditable = true;
 	
@@ -101,5 +103,16 @@ public class CaseSearchResult {
 	public void setActions(List<CaseStatus> actions) {
 		this.actions = actions;
 	}
-	
+	public String getUpdateDate() {
+		return updateDate;
+	}
+	public void setUpdateDate(String updateDate) {
+		this.updateDate = updateDate;
+	}
+	public String getUpdateBy() {
+		return updateBy;
+	}
+	public void setUpdateBy(String updateBy) {
+		this.updateBy = updateBy;
+	}
 }
