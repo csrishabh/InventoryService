@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mongo.demo.document.Product;
 import com.mongo.demo.repo.ProductRepo;
+import com.mongo.demo.service.EmailService;
 import com.mongo.demo.service.ProductService;
 import com.mongo.utility.Config;
 
@@ -28,10 +31,14 @@ public class ProductController {
 	
 	@Autowired
 	ProductService productService;
+	
+	@Autowired
+	EmailService emailService;
 
 	@GetMapping("/test")
 	public String test() {
-
+		Product p = repo.findById("5c4b4a525b599c0004668d93").get();
+		emailService.sendAlertMail(p);
 		return "This is Mongo API";
 	}
 	
@@ -50,7 +57,8 @@ public class ProductController {
 
 	@GetMapping("/products")
 	public List<Product> getAllProducts() {
-		List<Product> items = formatProducts(repo.findAll());
+
+		List<Product> items = formatProducts(repo.getAllProduct());
 		return items;
 	}
 	

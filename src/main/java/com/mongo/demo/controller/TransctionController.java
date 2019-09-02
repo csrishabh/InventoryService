@@ -77,10 +77,10 @@ public class TransctionController {
 	}
 	
 	@GetMapping("/audit/transction")
-	public ResponseEntity<List<Object[]>> getAuditableTransctions(@RequestParam Map<String, String> map) {
+	public ResponseEntity<List<Object[]>> getAuditableTransctions(@RequestParam Map<String, Object> map) {
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		try {
-			List<Transction> transctions = tRepo.getAuditPandingTransction(formatter.parse(map.get("startDate")), formatter.parse(map.get("endDate")));
+			List<Transction> transctions = tRepo.getAuditPandingTransction(map);
 			
 			List<Object[]> response = new ArrayList<>();
 			
@@ -108,17 +108,17 @@ public class TransctionController {
 	}
 	
 	@GetMapping("/transction")
-	public ResponseEntity<List<Transction>> getTransctions(@RequestParam Map<String, String> map) {
+	public ResponseEntity<List<Transction>> getTransctions(@RequestParam Map<String, Object> map) {
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 		try {
 			User user = userService.findUserByEmail(userId);
 			List<Transction> transctions = null;
-			if(user.getRoles().contains("ADMIN")) {
-				transctions = tRepo.getAllTransction(formatter.parse(map.get("startDate")), formatter.parse(map.get("endDate")));
+			if(user.getRoles().contains("ADMIN_INV")) {
+				transctions = tRepo.getAllTransction(map);
 			}
 			else {
-				transctions = tRepo.getTransctionByUser(formatter.parse(map.get("startDate")), formatter.parse(map.get("endDate")),userId);
+				transctions = tRepo.getTransctionByUser(map,userId);
 			}
 			return new ResponseEntity<List<Transction>>(transctions, HttpStatus.OK);
 		}
@@ -209,9 +209,9 @@ public class TransctionController {
 						 if(product == null) {
 								return new ResponseEntity<Transction>(transction,HttpStatus.NOT_ACCEPTABLE);
 						 }
-						 /*if(product.getQtyAblBack() < product.getAlertBack()) {
+						 if(product.getQtyAblBack() < product.getAlertBack()) {
 								emailService.sendAlertMail(product);
-						}	*/	 
+						 }		 
 				}
 				if( transction.getQuantity() == 0) {
 					cart.getTransctions().remove(duplicateTrns);
@@ -242,7 +242,7 @@ public class TransctionController {
 					cart = cartRepo.save(cart);
 				}
 			
-				cart.setLastModifiedDate(new Date());
+				cart.setLastModifiedDate(Config.fomatDate(new Date()));
 				
 				if (transction.getType() == TransctionType.ADD) {
 					transction.setAdtable(true);
@@ -263,13 +263,14 @@ public class TransctionController {
 					if (product == null) {
 						return new ResponseEntity<Transction>(transction, HttpStatus.NOT_ACCEPTABLE);
 					}
-					/*else if(product.getQtyAblBack() < product.getAlertBack()) {
+					else if(product.getQtyAblBack() < product.getAlertBack()) {
 						emailService.sendAlertMail(product);
-					}*/
+					}
 				}
 				transction.setAmountBack((long)(transction.getAmount()*Config.PRICE_FORMATTER));
 				transction.setQuantityBack((long)(transction.getQuantity()*Config.QTY_FORMATTER));
 				transction.setProductName(product.getName());
+				transction.setDate(Config.fomatDate(transction.getDate()));
 				cart.addTransction(transction);
 				cartRepo.save(cart);
 				return new ResponseEntity<Transction>(HttpStatus.CREATED);
@@ -315,7 +316,7 @@ public class TransctionController {
 			orgTrns.setRemark(transction.getRemark());
 			orgTrns.setDeleted(true);
 			orgTrns.setDltBy(userId);
-			orgTrns.setDltDate(new Date());
+			orgTrns.setDltDate(Config.fomatDate(new Date()));
 			tRepo.save(orgTrns);
 			return new ResponseEntity<Transction>(orgTrns, HttpStatus.OK);
 		} else {
@@ -370,7 +371,7 @@ public class TransctionController {
 		Order order = new Order();
 		order.setUserId(userId);
 		order.setTransctions(cart.getTransctions());
-		order.setDate(new Date());
+		order.setDate(Config.fomatDate(new Date()));
 		orderRepo.save(order);
 		cartRepo.delete(cart);	
 		return new ResponseEntity<Void>(HttpStatus.OK);
