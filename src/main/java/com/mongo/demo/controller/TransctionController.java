@@ -120,6 +120,9 @@ public class TransctionController {
 			else {
 				transctions = tRepo.getTransctionByUser(map,userId);
 			}
+			transctions.stream().forEach(t ->{
+				t.setAddBy(userService.findUserByEmail(t.getAddBy()).getFullname());
+			});
 			return new ResponseEntity<List<Transction>>(transctions, HttpStatus.OK);
 		}
 		catch (Exception e) {
