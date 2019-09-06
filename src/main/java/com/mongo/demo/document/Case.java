@@ -176,13 +176,13 @@ public class Case implements Serializable {
 			actions.add(CaseStatus.TRIAL);
 			break;
 		case DELIVERD:
-			actions.add(CaseStatus.COMPLETED);
+			actions.add(CaseStatus.INSERTION_DONE);
 			actions.add(CaseStatus.INPROCESS);
 			break;
 		case TRIAL:
 			actions.add(CaseStatus.INPROCESS);
 			break;	
-		case COMPLETED:
+		case INSERTION_DONE:
 			actions.add(CaseStatus.INPROCESS);
 			break;		
 		}
