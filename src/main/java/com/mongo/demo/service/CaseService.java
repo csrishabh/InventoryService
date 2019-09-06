@@ -165,7 +165,7 @@ public class CaseService {
 			c.setVendorName(c.getCase().getVender().getFullname());
 			c.setDoctorName(c.getCase().getDoctor().getFullname());
 			c.setStatus(c.getCase().getStatus().toString());
-			c.setCreatedBy(c.getCase().getCreatedBy());
+			c.setCreatedBy(userService.findUserByEmail(c.getCase().getCreatedBy()).getFullname());
 			//c.setActions(c.getCase().getnextActions());
 			c.setCrownDetails(c.getCase().getCrown().toString());
 			c.setId(c.getCase().getOpdNo());
@@ -221,7 +221,7 @@ public class CaseService {
 					r.setVendorName(c.getVender().getFullname());
 					r.setDoctorName(c.getDoctor().getFullname());
 					r.setStatus(c.getStatus().toString());
-					r.setUpdateBy(c.getUpdateBy());
+					r.setUpdateBy(userService.findUserByEmail(c.getUpdateBy()).getFullname());
 					r.setCrownDetails(c.getCrown().toString());
 					r.setId(c.getOpdNo());
 					result.add(r);
@@ -266,7 +266,7 @@ public class CaseService {
 				c.setVendorName(c.getCase().getVender().getFullname());
 				c.setDoctorName(c.getCase().getDoctor().getFullname());
 				c.setStatus(c.getCase().getStatus().toString());
-				c.setCreatedBy(c.getCase().getCreatedBy());
+				c.setCreatedBy(userService.findUserByEmail(c.getCase().getCreatedBy()).getFullname());
 				c.setActions(c.getCase().getnextActions());
 				c.setCrownDetails(c.getCase().getCrown().toString());
 				c.setId(c.getCase().getOpdNo());
