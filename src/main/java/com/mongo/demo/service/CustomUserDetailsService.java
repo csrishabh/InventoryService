@@ -1,6 +1,7 @@
 package com.mongo.demo.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,10 +25,17 @@ public class CustomUserDetailsService implements UserDetailsService {
 	private UserRepository userRepository;
 	/*@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;*/
-	
+	private HashMap<String, User> cache  = new HashMap<>();
 	
 	public User findUserByEmail(String email) {
-	    return userRepository.findByUsername(email);
+		if(cache.get(email)!=null) {
+			return cache.get(email);
+		}
+		else {
+			User user = userRepository.findByUsername(email);
+			cache.put(email, user);
+			return user;
+		}
 	}
 	
 	/*public void saveUser(User user) {
