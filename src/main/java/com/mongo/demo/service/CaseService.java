@@ -167,7 +167,6 @@ public class CaseService {
 			c.setDoctorName(c.getCase().getDoctor().getFullname());
 			c.setStatus(c.getCase().getStatus().getName());
 			c.setCreatedBy(userService.findUserByEmail(c.getCase().getCreatedBy()).getFullname());
-
 			//c.setActions(c.getCase().getnextActions());
 			c.setCrownDetails(c.getCase().getCrown().toString());
 			c.setId(c.getCase().getOpdNo());
@@ -225,7 +224,6 @@ public class CaseService {
 					r.setDoctorName(c.getDoctor().getFullname());
 					r.setStatus(c.getStatus().getName());
 					r.setUpdateBy(userService.findUserByEmail(c.getUpdateBy()).getFullname());
-
 					r.setCrownDetails(c.getCrown().toString());
 					r.setId(c.getOpdNo());
 					r.setRemark(c.getRemark());
