@@ -25,7 +25,7 @@ public class CrownDetail {
 	}
 	@Override
 	public String toString() {
-		return "[type=" + type + ", crownNo=" + crownNo + "]";
+		return "[type=" + type.getName() + ", crownNo=" + crownNo + "]";
 	}
 	
 }

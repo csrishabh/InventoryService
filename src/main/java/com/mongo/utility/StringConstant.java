@@ -14,6 +14,7 @@ public class StringConstant {
 	public static final String OPD_NO_NOT_FOUND = "Please enter OPD number";
 	public static final String FOUND_DUPLICATE_CASE = "OPD no already exist";
 	public static final String DONE = "Done";
+	public static final String INITIAL_ENTRY = "Intial Entry";
 	
 	
 

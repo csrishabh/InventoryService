@@ -52,6 +52,8 @@ public class Case implements Serializable {
     private String createdBy;
     
     private int version;
+    
+    private String remark;
 
 	public String getId() {
 		return id;
@@ -165,6 +167,14 @@ public class Case implements Serializable {
 		this.version = version;
 	}
 	
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
 	public List<CaseStatus> getnextActions(){
 		List<CaseStatus> actions = new ArrayList<CaseStatus>();
 		switch (this.status) {

@@ -89,6 +89,7 @@ public class CaseService {
 		report.setUpdateBy(userId);
 		report.setUpdateDate(Config.fomatDate(new Date()));
 		report.setVersion(1);
+		report.setRemark(StringConstant.INITIAL_ENTRY);
 		report = caseRepo.save(report);	
 		response.setData(report);
 		response.setSuccess(true);
@@ -164,11 +165,13 @@ public class CaseService {
 			c.setPatientName(c.getCase().getPatient());
 			c.setVendorName(c.getCase().getVender().getFullname());
 			c.setDoctorName(c.getCase().getDoctor().getFullname());
-			c.setStatus(c.getCase().getStatus().toString());
-			c.setCreatedBy(c.getCase().getCreatedBy());
+			c.setStatus(c.getCase().getStatus().getName());
+			c.setCreatedBy(userService.findUserByEmail(c.getCase().getCreatedBy()).getFullname());
+
 			//c.setActions(c.getCase().getnextActions());
 			c.setCrownDetails(c.getCase().getCrown().toString());
 			c.setId(c.getCase().getOpdNo());
+			c.setCrown(c.getCase().getCrown());
 			c.setCase(null);
 		});
 		return cases;
@@ -220,10 +223,13 @@ public class CaseService {
 					r.setPatientName(c.getPatient());
 					r.setVendorName(c.getVender().getFullname());
 					r.setDoctorName(c.getDoctor().getFullname());
-					r.setStatus(c.getStatus().toString());
-					r.setUpdateBy(c.getUpdateBy());
+					r.setStatus(c.getStatus().getName());
+					r.setUpdateBy(userService.findUserByEmail(c.getUpdateBy()).getFullname());
+
 					r.setCrownDetails(c.getCrown().toString());
 					r.setId(c.getOpdNo());
+					r.setRemark(c.getRemark());
+					r.setCrown(c.getCrown());
 					result.add(r);
 				});
 				response.setSuccess(true);
@@ -265,11 +271,12 @@ public class CaseService {
 				c.setPatientName(c.getCase().getPatient());
 				c.setVendorName(c.getCase().getVender().getFullname());
 				c.setDoctorName(c.getCase().getDoctor().getFullname());
-				c.setStatus(c.getCase().getStatus().toString());
-				c.setCreatedBy(c.getCase().getCreatedBy());
+				c.setStatus(c.getCase().getStatus().getName());
+				c.setCreatedBy(userService.findUserByEmail(c.getCase().getCreatedBy()).getFullname());
 				c.setActions(c.getCase().getnextActions());
 				c.setCrownDetails(c.getCase().getCrown().toString());
 				c.setId(c.getCase().getOpdNo());
+				c.setCrown(c.getCase().getCrown());
 				c.setCase(null);
 			});
 			response.setSuccess(true);
