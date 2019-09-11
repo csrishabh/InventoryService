@@ -140,7 +140,7 @@ public class CaseService {
 		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userService.findUserByEmail(userId);
 		List<CaseSearchResult> cases ;
-		if(user.getRoles().contains("ADMIN_CASE")) {
+		if(user.getRoles().contains("USER_CASE")) {
 			cases = caseRepo.findAllLatestCase(filters);
 		}
 		else if(user.getRoles().contains("VENDOR")) {
@@ -149,12 +149,7 @@ public class CaseService {
 			cases = caseRepo.findAllLatestCase(filters);
 		}
 		else {
-		cases = caseRepo.findAllLatestCaseByUser(user.getUsername(),filters);
-		cases.stream().forEach(c->{
-			if(!DateUtils.isSameDay(c.getCase().getBookingDate(), new Date())) {
-				c.setEditable(false);
-			}
-		});
+		cases = new ArrayList<>();
 		}
 		final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MM-yyyy hh.mm aa");
 		final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
