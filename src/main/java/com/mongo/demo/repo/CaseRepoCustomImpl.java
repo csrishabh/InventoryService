@@ -121,6 +121,11 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 				criteria.and("Case."+k).is(v);
 				break;
 			}
+			case "subStatus": {
+				if(!StringUtils.isEmpty(v) && !((String) v).equalsIgnoreCase("ALL"))
+				criteria.and("Case."+k).is(v);
+				break;
+			}
 			case "vender": {
 				if(!StringUtils.isEmpty(v))
 				criteria.and("Case."+k+".$id").is(new ObjectId((String)v));

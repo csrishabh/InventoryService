@@ -42,6 +42,8 @@ public class Case implements Serializable {
 	
 	private CaseStatus status;
 	
+	private CaseSubStatus subStatus = CaseSubStatus.NONE;
+	
 	private Date deliveredDate;
 	
 	private Date updateDate;
@@ -173,6 +175,14 @@ public class Case implements Serializable {
 
 	public void setRemark(String remark) {
 		this.remark = remark;
+	}
+	
+	public CaseSubStatus getSubStatus() {
+		return subStatus;
+	}
+
+	public void setSubStatus(CaseSubStatus subStatus) {
+		this.subStatus = subStatus;
 	}
 
 	public List<CaseStatus> getnextActions(){

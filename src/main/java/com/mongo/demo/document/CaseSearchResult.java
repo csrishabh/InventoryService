@@ -20,6 +20,7 @@ public class CaseSearchResult {
 	private String crownDetails;
 	private String createdBy;
 	private String status;
+	private String subStatus;
 	private String updateDate;
 	private String updateBy;
 	private String remark;
@@ -128,5 +129,11 @@ public class CaseSearchResult {
 	}
 	public void setCrown(Crown crown) {
 		this.crown = crown;
+	}
+	public String getSubStatus() {
+		return subStatus;
+	}
+	public void setSubStatus(String subStatus) {
+		this.subStatus = subStatus;
 	}
 }
