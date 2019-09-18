@@ -1,11 +1,9 @@
 package com.mongo.demo.controller;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -22,7 +20,6 @@ import com.mongo.demo.repo.ProductRepo;
 import com.mongo.demo.service.EmailService;
 import com.mongo.demo.service.ProductService;
 import com.mongo.utility.Config;
-import com.mongo.utility.Test;
 
 @RestController
 public class ProductController {
@@ -36,24 +33,6 @@ public class ProductController {
 	@Autowired
 	EmailService emailService;
 
-	@GetMapping("/test")
-	public String test() {
-		/*Product p = repo.findById("5c4b4a525b599c0004668d93").get();
-		emailService.sendAlertMail(p);*/
-		
-		try {
-			Test.run();
-			List<Product> products = Test.sheets;
-			repo.saveAll(products);
-		} catch (InvalidFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return "This is Mongo API";
-	}
 	
 	@PostMapping("/addProduct")
 	public ResponseEntity<Product> addProduct(@RequestBody Product item) {
