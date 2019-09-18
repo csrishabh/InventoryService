@@ -16,11 +16,14 @@ public class CaseSearchResult {
 	private String patientName;
 	private String doctorName;
 	private String vendorName;
+	private Crown crown;
 	private String crownDetails;
 	private String createdBy;
 	private String status;
+	private String subStatus;
 	private String updateDate;
 	private String updateBy;
+	private String remark;
 	private List<CaseStatus> actions  = new ArrayList<CaseStatus>();
 	private boolean isEditable = true;
 	
@@ -114,5 +117,23 @@ public class CaseSearchResult {
 	}
 	public void setUpdateBy(String updateBy) {
 		this.updateBy = updateBy;
+	}
+	public String getRemark() {
+		return remark;
+	}
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+	public Crown getCrown() {
+		return crown;
+	}
+	public void setCrown(Crown crown) {
+		this.crown = crown;
+	}
+	public String getSubStatus() {
+		return subStatus;
+	}
+	public void setSubStatus(String subStatus) {
+		this.subStatus = subStatus;
 	}
 }

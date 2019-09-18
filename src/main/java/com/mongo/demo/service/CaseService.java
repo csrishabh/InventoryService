@@ -19,6 +19,7 @@ import com.mongo.demo.document.AppResponse;
 import com.mongo.demo.document.Case;
 import com.mongo.demo.document.CaseSearchResult;
 import com.mongo.demo.document.CaseStatus;
+import com.mongo.demo.document.CaseSubStatus;
 import com.mongo.demo.document.User;
 import com.mongo.demo.repo.CaseRepo;
 import com.mongo.utility.Config;
@@ -75,9 +76,9 @@ public class CaseService {
 			return response;
 		}
 		
-		AppResponse<String> patient = getPatientNameByOpdNo(report.getOpdNo());
+		AppResponse<Case> dCase = getPatientNameByOpdNo(report.getOpdNo());
 		
-		if(patient.isSuccess() && !report.getPatient().equalsIgnoreCase(patient.getData())) {
+		if(dCase.isSuccess() && !report.getPatient().equalsIgnoreCase(dCase.getData().getPatient())) {
 			response.setSuccess(false);
 			response.setMsg(Arrays.asList(StringConstant.FOUND_DUPLICATE_CASE));
 			return response;
@@ -89,6 +90,7 @@ public class CaseService {
 		report.setUpdateBy(userId);
 		report.setUpdateDate(Config.fomatDate(new Date()));
 		report.setVersion(1);
+		report.setRemark(StringConstant.INITIAL_ENTRY);
 		report = caseRepo.save(report);	
 		response.setData(report);
 		response.setSuccess(true);
@@ -139,21 +141,15 @@ public class CaseService {
 		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userService.findUserByEmail(userId);
 		List<CaseSearchResult> cases ;
-		if(user.getRoles().contains("ADMIN_CASE")) {
+		if(user.getRoles().contains("USER_CASE")) {
 			cases = caseRepo.findAllLatestCase(filters);
 		}
 		else if(user.getRoles().contains("VENDOR")) {
 			filters.put("vender", user.getId());
-			filters.put("status", CaseStatus.INPROCESS.toString());
 			cases = caseRepo.findAllLatestCase(filters);
 		}
 		else {
-		cases = caseRepo.findAllLatestCaseByUser(user.getUsername(),filters);
-		cases.stream().forEach(c->{
-			if(!DateUtils.isSameDay(c.getCase().getBookingDate(), new Date())) {
-				c.setEditable(false);
-			}
-		});
+		cases = new ArrayList<>();
 		}
 		final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MM-yyyy hh.mm aa");
 		final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
@@ -164,11 +160,12 @@ public class CaseService {
 			c.setPatientName(c.getCase().getPatient());
 			c.setVendorName(c.getCase().getVender().getFullname());
 			c.setDoctorName(c.getCase().getDoctor().getFullname());
-			c.setStatus(c.getCase().getStatus().toString());
+			c.setStatus(c.getCase().getStatus().getName());
 			c.setCreatedBy(userService.findUserByEmail(c.getCase().getCreatedBy()).getFullname());
-			//c.setActions(c.getCase().getnextActions());
+			c.setSubStatus(c.getCase().getSubStatus().getName());
 			c.setCrownDetails(c.getCase().getCrown().toString());
 			c.setId(c.getCase().getOpdNo());
+			c.setCrown(c.getCase().getCrown());
 			c.setCase(null);
 		});
 		return cases;
@@ -220,10 +217,13 @@ public class CaseService {
 					r.setPatientName(c.getPatient());
 					r.setVendorName(c.getVender().getFullname());
 					r.setDoctorName(c.getDoctor().getFullname());
-					r.setStatus(c.getStatus().toString());
+					r.setStatus(c.getStatus().getName());
 					r.setUpdateBy(userService.findUserByEmail(c.getUpdateBy()).getFullname());
 					r.setCrownDetails(c.getCrown().toString());
 					r.setId(c.getOpdNo());
+					r.setRemark(c.getRemark());
+					r.setCrown(c.getCrown());
+					r.setSubStatus(c.getSubStatus().getName());
 					result.add(r);
 				});
 				response.setSuccess(true);
@@ -265,11 +265,13 @@ public class CaseService {
 				c.setPatientName(c.getCase().getPatient());
 				c.setVendorName(c.getCase().getVender().getFullname());
 				c.setDoctorName(c.getCase().getDoctor().getFullname());
-				c.setStatus(c.getCase().getStatus().toString());
+				c.setStatus(c.getCase().getStatus().getName());
 				c.setCreatedBy(userService.findUserByEmail(c.getCase().getCreatedBy()).getFullname());
 				c.setActions(c.getCase().getnextActions());
 				c.setCrownDetails(c.getCase().getCrown().toString());
 				c.setId(c.getCase().getOpdNo());
+				c.setCrown(c.getCase().getCrown());
+				c.setSubStatus(c.getCase().getSubStatus().getName());
 				c.setCase(null);
 			});
 			response.setSuccess(true);
@@ -351,16 +353,20 @@ public class CaseService {
 		return response;
 	}
 	
-	public AppResponse<String> getPatientNameByOpdNo(String OpdNo){
-		AppResponse<String> response = new AppResponse<>();
+	public AppResponse<Case> getPatientNameByOpdNo(String OpdNo){
+		AppResponse<Case> response = new AppResponse<>();
 		Map<String, Object> filter = new HashMap<>();
 		try {
 		filter.put("opdNo", OpdNo);
 		List<CaseSearchResult> cases =  caseRepo.findAllLatestCase(filter);
 		if(null != cases && cases.size() > 0) {
 		Case c = cases.get(0).getCase();
+		c.setId(null);
+		c.setRemark("");
+		c.setStatus(CaseStatus.BOOKED);
+		c.setSubStatus(CaseSubStatus.NONE);
 		response.setSuccess(true);
-		response.setData(c.getPatient());
+		response.setData(c);
 		}
 		else {
 			response.setSuccess(false);

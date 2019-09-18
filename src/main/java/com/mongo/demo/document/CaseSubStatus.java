@@ -1,12 +1,12 @@
 package com.mongo.demo.document;
 
-public enum CaseStatus {
-
-	BOOKED("Booked"),INPROCESS("In Process"),TRIAL("Trial"),DELIVERD("Delivered"),INSERTION_DONE("Insertion Done"),REPEAT("Repeat");
+public enum CaseSubStatus {
+	
+	NONE("None"),TRIAL("Trial"),REPEAT("Repeat");
 	
 	private String name;
 
-	private CaseStatus(String name) {
+	private CaseSubStatus(String name) {
 
 		this.name = name;
 	}
@@ -18,4 +18,5 @@ public enum CaseStatus {
 	public void setName(String name) {
 		this.name = name;
 	}
+
 }

@@ -40,7 +40,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 		GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo","bookingDate").first(Aggregation.ROOT).as("Case");
 		SortOperation sortByBookingDate = Aggregation.sort(new Sort(Direction.DESC, "Case.bookingDate"));	
 		Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(applyFilter(filters)),sortByVersionAsc,getCaseWithMaxVersion,
-				Aggregation.match(applyPostFilter(filters)),sortByBookingDate);
+				Aggregation.match(applyPostFilter(filters)),Aggregation.match(applyFilter2(filters)),sortByBookingDate);
 		AggregationResults<CaseSearchResult> result = mongoTemplate.aggregate(aggregation, "case",CaseSearchResult.class);
 		return result.getMappedResults();	
 		
@@ -86,9 +86,29 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 		SortOperation sortByVersionAsc = Aggregation.sort(new Sort(Direction.DESC, "version"));	
 		GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo").first(Aggregation.ROOT).as("Case");
 		SortOperation sortByBookingDate = Aggregation.sort(new Sort(Direction.DESC, "Case.bookingDate"));
-		Aggregation aggregation = Aggregation.newAggregation(filterUsers,sortByVersionAsc,getCaseWithMaxVersion,Aggregation.match(applyPostFilter(filters)),sortByBookingDate);
+		Aggregation aggregation = Aggregation.newAggregation(filterUsers,sortByVersionAsc,getCaseWithMaxVersion,Aggregation.match(applyPostFilter(filters)),Aggregation.match(applyFilter2(filters)),sortByBookingDate);
 		AggregationResults<CaseSearchResult> result = mongoTemplate.aggregate(aggregation, "case", CaseSearchResult.class);
 		return result.getMappedResults();
+	}
+	
+	private Criteria applyFilter2(Map<String, Object> filters) {
+		Criteria criteria = new Criteria();
+		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+		if(!StringUtils.isEmpty(filters.get("dlvDate1")) && !StringUtils.isEmpty(filters.get("dlvDate2"))) {
+			try {
+				Date dlvDate2 = format.parse((String) filters.get("dlvDate2"));
+				criteria.andOperator(Criteria.where("Case.deliveredDate").gte(format.parse((String) filters.get("dlvDate1"))),Criteria.where("Case.deliveredDate").lte(dlvDate2));
+			} catch (ParseException e) {
+				
+			}
+		}
+		else if(!StringUtils.isEmpty(filters.get("dlvDate1"))) {
+			try {
+				criteria.and("Case.deliveredDate").gte(format.parse((String) filters.get("dlvDate1")));
+			} catch (ParseException e) {
+			}
+		}
+		return criteria;
 	}
 	
 	private Criteria applyPostFilter(Map<String, Object> filters) {
@@ -101,7 +121,17 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 				criteria.and("Case."+k).is(v);
 				break;
 			}
+			case "subStatus": {
+				if(!StringUtils.isEmpty(v) && !((String) v).equalsIgnoreCase("ALL"))
+				criteria.and("Case."+k).is(v);
+				break;
+			}
 			case "vender": {
+				if(!StringUtils.isEmpty(v))
+				criteria.and("Case."+k+".$id").is(new ObjectId((String)v));
+				break;
+			}
+			case "doctor": {
 				if(!StringUtils.isEmpty(v))
 				criteria.and("Case."+k+".$id").is(new ObjectId((String)v));
 				break;
