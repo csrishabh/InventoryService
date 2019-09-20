@@ -104,7 +104,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 		}
 		else if(!StringUtils.isEmpty(filters.get("dlvDate1"))) {
 			try {
-				criteria.and("Case.deliveredDate").gte(format.parse((String) filters.get("dlvDate1")));
+				criteria.and("Case.deliveredDate").is(format.parse((String) filters.get("dlvDate1")));
 			} catch (ParseException e) {
 			}
 		}
@@ -150,7 +150,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 				}
 				else if(!StringUtils.isEmpty(v)) {
 					try {
-						criteria.and("Case.appointmentDate").gte(format.parse((String) v));
+						criteria.and("Case.appointmentDate").is(format.parse((String) v));
 					} catch (ParseException e) {
 					}
 				}
@@ -194,7 +194,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 				}
 				else if(!StringUtils.isEmpty(v)) {
 					try {
-						criteria.and("bookingDate").gte(format.parse((String) v));
+						criteria.and("bookingDate").is(format.parse((String) v));
 					} catch (ParseException e) {
 					}
 				}
