@@ -23,11 +23,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 	
 	@Bean
-	public BCryptPasswordEncoder passwordEncoder() {
-	  return new BCryptPasswordEncoder();
-	}
-	
-	@Bean
 	public UserDetailsService mongoUserDetails() {
 	    return new CustomUserDetailsService();
 	}

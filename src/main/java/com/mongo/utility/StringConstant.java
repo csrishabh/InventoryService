@@ -15,6 +15,8 @@ public class StringConstant {
 	public static final String FOUND_DUPLICATE_CASE = "OPD no already exist";
 	public static final String DONE = "Done";
 	public static final String INITIAL_ENTRY = "Intial Entry";
+	public static final String PASS_NOT_CORRECT = "Please enter correct password";
+	public static final String PASS_CHANGE_SUCCESS = "Password change successfuly";
 	
 	
 

@@ -61,7 +61,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 			
 			
 			SortOperation sortByVersionAsc = Aggregation.sort(new Sort(Direction.DESC, "version"));	
-			GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo").first("status").as("status").first("deliveredDate").as("deliveredDate");	
+			GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo","bookingDate").first("status").as("status").first("deliveredDate").as("deliveredDate");	
 			Aggregation aggregation = Aggregation.newAggregation(sortByVersionAsc,getCaseWithMaxVersion,
 					Aggregation.match(Criteria.where("status").is(CaseStatus.INPROCESS).and("deliveredDate").lt(Config.fomatDate(new Date()))),Aggregation.count().as("count"));
 			AggregationResults<Document> result = mongoTemplate.aggregate(aggregation, "case",Document.class);
@@ -71,7 +71,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 	public List<CaseSearchResult> findAllLateCase() {
 			
 			SortOperation sortByVersionAsc = Aggregation.sort(new Sort(Direction.DESC, "version"));	
-			GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo").first(Aggregation.ROOT).as("Case");	
+			GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo","bookingDate").first(Aggregation.ROOT).as("Case");	
 			Aggregation aggregation = Aggregation.newAggregation(sortByVersionAsc,getCaseWithMaxVersion,
 					Aggregation.match(Criteria.where("Case.status").is(CaseStatus.INPROCESS).and("Case.deliveredDate").lt(Config.fomatDate(new Date()))));
 			AggregationResults<CaseSearchResult> result = mongoTemplate.aggregate(aggregation, "case",CaseSearchResult.class);
@@ -104,7 +104,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 		}
 		else if(!StringUtils.isEmpty(filters.get("dlvDate1"))) {
 			try {
-				criteria.and("Case.deliveredDate").gte(format.parse((String) filters.get("dlvDate1")));
+				criteria.and("Case.deliveredDate").is(format.parse((String) filters.get("dlvDate1")));
 			} catch (ParseException e) {
 			}
 		}
@@ -150,7 +150,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 				}
 				else if(!StringUtils.isEmpty(v)) {
 					try {
-						criteria.and("Case.appointmentDate").gte(format.parse((String) v));
+						criteria.and("Case.appointmentDate").is(format.parse((String) v));
 					} catch (ParseException e) {
 					}
 				}
@@ -194,7 +194,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 				}
 				else if(!StringUtils.isEmpty(v)) {
 					try {
-						criteria.and("bookingDate").gte(format.parse((String) v));
+						criteria.and("bookingDate").is(format.parse((String) v));
 					} catch (ParseException e) {
 					}
 				}
