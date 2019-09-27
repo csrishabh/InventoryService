@@ -141,6 +141,9 @@ public class CaseService {
 		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userService.findUserByEmail(userId);
 		List<CaseSearchResult> cases ;
+		if(filters.get("status") == null || filters.get("status").equals("ALL") ) {
+			filters.put("status", CaseStatus.DELIVERD+","+CaseStatus.INPROCESS+","+CaseStatus.BOOKED);
+		}
 		if(user.getRoles().contains("USER_CASE")) {
 			cases = caseRepo.findAllLatestCase(filters);
 		}
@@ -244,18 +247,7 @@ public class CaseService {
 	public AppResponse<List<CaseSearchResult>> getAllLateCase(){
 		AppResponse<List<CaseSearchResult>> response = new AppResponse<>();
 		try {
-			//String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-			//User user = userService.findUserByEmail(userId);
 			List<CaseSearchResult> cases = caseRepo.findAllLateCase();
-			/*if(!user.getRoles().contains("ADMIN_CASE")) {
-				cases.stream().forEach(c->{
-					if(!DateUtils.isSameDay(c.getCase().getBookingDate(), new Date()) || c.getCase().getCreatedBy().equals(userId)){
-						c.setEditable(false);
-					}
-					
-				});
-				
-			}*/
 			final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MM-yyyy hh.mm aa");
 			final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 			cases.stream().forEach(c ->{

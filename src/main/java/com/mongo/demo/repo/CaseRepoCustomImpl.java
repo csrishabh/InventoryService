@@ -2,6 +2,7 @@ package com.mongo.demo.repo;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -118,7 +119,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 			switch(k) {
 			case "status": {
 				if(!StringUtils.isEmpty(v) && !((String) v).equalsIgnoreCase("ALL"))
-				criteria.and("Case."+k).is(v);
+				criteria.and("Case."+k).in(Arrays.asList(((String) v).split(",")));
 				break;
 			}
 			case "subStatus": {
