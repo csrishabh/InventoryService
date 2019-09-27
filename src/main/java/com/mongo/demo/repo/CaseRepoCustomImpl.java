@@ -124,7 +124,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 			}
 			case "subStatus": {
 				if(!StringUtils.isEmpty(v) && !((String) v).equalsIgnoreCase("ALL"))
-				criteria.and("Case."+k).is(v);
+				criteria.and("Case."+k).in(Arrays.asList(((String) v).split(",")));
 				break;
 			}
 			case "vender": {
