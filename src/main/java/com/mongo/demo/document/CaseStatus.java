@@ -2,7 +2,7 @@ package com.mongo.demo.document;
 
 public enum CaseStatus {
 
-	BOOKED("Booked"),INPROCESS("In Process"),TRIAL("Trial"),DELIVERD("Delivered"),INSERTION_DONE("Insertion Done"),REPEAT("Repeat");
+	BOOKED("Booked"),INPROCESS("In Process"),TRIAL("Trial"),DELIVERD("Delivered"),INSERTION_DONE("Insertion Done"),REPEAT("Repeat"),CANCELED("Canceled");
 	
 	private String name;
 

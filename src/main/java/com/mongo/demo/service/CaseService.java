@@ -110,7 +110,7 @@ public class CaseService {
 		AppResponse<Void> response = new AppResponse<>();
 		try {
 			Case c = caseRepo.findById(report.getId()).get();
-			if(!c.getOpdNo().equals(report.getOpdNo()) || !DateUtils.isSameDay(c.getBookingDate(), report.getBookingDate()) || !c.getPatient().equalsIgnoreCase(report.getPatient())) {
+			if(c.getStatus().equals(CaseStatus.CANCELED) || !c.getOpdNo().equals(report.getOpdNo()) || !DateUtils.isSameDay(c.getBookingDate(), report.getBookingDate()) || !c.getPatient().equalsIgnoreCase(report.getPatient())) {
 				response.setSuccess(false);
 				response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
 			}
