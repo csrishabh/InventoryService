@@ -3,6 +3,7 @@ package com.mongo.demo.controller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,13 +33,13 @@ public class ProductController {
 	
 	@Autowired
 	EmailService emailService;
-
 	
 	@PostMapping("/addProduct")
 	public ResponseEntity<Product> addProduct(@RequestBody Product item) {
 		try {	
 		List<Product> products = repo.findByNameIgnoreCase(item.getName());
 		if(products.size() == 0) {
+		item.setName(item.getName().toUpperCase());	
 		item.setAlertBack((long)(item.getAlert()*Config.QTY_FORMATTER));
 		item = repo.save(item);
 		return new ResponseEntity<Product>(item, HttpStatus.CREATED);
@@ -52,11 +53,17 @@ public class ProductController {
 		}
 		
 	}
-
+	
 	@GetMapping("/products")
-	public List<Product> getAllProducts() {
-
-		List<Product> items = formatProducts(repo.getAllProduct());
+	public List<Product> getAllProducts(@RequestParam Map<String, Object> filters) {
+		List<Product> items = new ArrayList<>();
+		if(null != filters && null != filters.get("name")) {
+			String regex = (String) filters.get("name");
+			items = formatProducts(repo.findByNameStartingWith(regex));
+		}
+		else {
+		items = formatProducts(repo.getAllProduct());
+		}
 		return items;
 	}
 	
