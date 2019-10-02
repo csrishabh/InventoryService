@@ -13,6 +13,9 @@ public class ExportReportService {
 
 	@Autowired
 	private ProductRepo productRepo;
+	
+	@Autowired
+	private CaseService caseService;
 
 	
 	public Map<String, Object> exportPaymentReport() {
@@ -20,6 +23,13 @@ public class ExportReportService {
 		
 		Map<String, Object> fileData = new HashMap<>();
 		fileData.put("products", productRepo.findAll());
+		return fileData;
+
+	}
+	
+	public Map<String, Object> exportVendorReport(Map<String, Object> filters) {
+		Map<String, Object> fileData = new HashMap<>();
+		fileData.put("report", caseService.getCaseHistory(filters));
 		return fileData;
 
 	}

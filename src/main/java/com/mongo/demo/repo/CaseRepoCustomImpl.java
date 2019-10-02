@@ -157,6 +157,24 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 				}
 				break;
 			}
+			
+			case "updateDate1": {
+				if(!StringUtils.isEmpty(v) && !StringUtils.isEmpty(filters.get("updateDate2"))) {
+					try {
+						criteria.andOperator(Criteria.where("Case.updateDate").gte(format.parse((String) v)),Criteria.where("Case.updateDate").lte(format.parse((String) filters.get("updateDate2"))));
+					} catch (ParseException e) {
+						
+					}
+				}
+				else if(!StringUtils.isEmpty(v)) {
+					try {
+						criteria.and("Case.updateDate").is(format.parse((String) v));
+					} catch (ParseException e) {
+					}
+				}
+				break;
+			}
+			
 			}
 	});
 		return criteria;
