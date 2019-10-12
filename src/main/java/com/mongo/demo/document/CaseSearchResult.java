@@ -26,6 +26,7 @@ public class CaseSearchResult {
 	private String remark;
 	private List<CaseStatus> actions  = new ArrayList<CaseStatus>();
 	private boolean isEditable = true;
+	private boolean isAlreadyPaid;
 	
 	
 	public String getId() {
@@ -135,5 +136,11 @@ public class CaseSearchResult {
 	}
 	public void setSubStatus(String subStatus) {
 		this.subStatus = subStatus;
+	}
+	public boolean isAlreadyPaid() {
+		return isAlreadyPaid;
+	}
+	public void setAlreadyPaid(boolean isAlreadyPaid) {
+		this.isAlreadyPaid = isAlreadyPaid;
 	}
 }

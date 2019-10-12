@@ -1,5 +1,6 @@
 package com.mongo.demo.service;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,6 +135,37 @@ public class CaseService {
 		}
 		
 		return response;
+	}
+	
+	public List<CaseSearchResult> getVendorPayment(Map<String, Object> filters){
+		List<CaseSearchResult> results = caseRepo.getVendorReport(filters);
+		final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MM-yyyy hh.mm aa");
+		final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+		results.stream().forEach(c ->{
+			Case latestStatus = getLatestCase(c.getId(), dateFormat.format(c.getCase().getBookingDate())).getData();
+			c.getCase().setStatus(latestStatus.getStatus());
+			c.getCase().setSubStatus(latestStatus.getSubStatus());
+			try {
+					if(caseRepo.isPaidBefore(c.getId(),c.getCase().getBookingDate(), (String)filters.get("vender"), Config.fomatDate(dateFormat.parse((String) filters.get("updateDate1"))))) {
+						c.setAlreadyPaid(true);
+					}
+			} catch (ParseException e1) {
+			}
+			c.setAppointmentDate(dateTimeFormat.format(c.getCase().getAppointmentDate()));
+			c.setBookingDate(dateFormat.format(c.getCase().getBookingDate()));
+			c.setDeliverdDate(dateFormat.format(c.getCase().getDeliveredDate()));
+			c.setPatientName(c.getCase().getPatient());
+			c.setVendorName(c.getCase().getVender().getFullname());
+			c.setDoctorName(c.getCase().getDoctor().getFullname());
+			c.setStatus(c.getCase().getStatus().getName());
+			c.setCreatedBy(userService.findUserByEmail(c.getCase().getCreatedBy()).getFullname());
+			c.setSubStatus(c.getCase().getSubStatus().getName());
+			c.setCrownDetails(c.getCase().getCrown().toString());
+			c.setId(c.getCase().getOpdNo());
+			c.setCrown(c.getCase().getCrown());
+			c.setCase(null);
+		});
+		return results;
 	}
 	
 	public List<CaseSearchResult> getCaseHistory(Map<String, Object> filters){

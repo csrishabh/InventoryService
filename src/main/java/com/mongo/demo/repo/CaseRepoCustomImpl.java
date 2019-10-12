@@ -20,8 +20,10 @@ import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.util.StringUtils;
 
+import com.mongo.demo.document.Case;
 import com.mongo.demo.document.CaseSearchResult;
 import com.mongo.demo.document.CaseStatus;
 import com.mongo.utility.Config;
@@ -92,6 +94,37 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 		return result.getMappedResults();
 	}
 	
+	public boolean isPaidBefore(String OpdNo, Date bookingDate,String vendorId, Date updateDate) {
+		Criteria criteria = new Criteria();
+		criteria.and("opdNo").is(OpdNo);
+		criteria.and("bookingDate").is(bookingDate);
+		criteria.and("updateDate").lt(updateDate);
+		criteria.and("status").is(CaseStatus.DELIVERD);
+		criteria.and("vender.$id").is(new ObjectId(vendorId));
+		Query query = new Query();
+		query.addCriteria(criteria);
+		return mongoTemplate.find(query, Case.class).size() == 0 ? false : true;
+	}
+	@Override
+	public List<CaseSearchResult> getVendorReport(Map<String, Object> filters){
+		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+		Criteria criteria = new Criteria();
+		criteria.and("vender.$id").is(new ObjectId((String) filters.get("vender")));
+		criteria.and("status").in(Arrays.asList((CaseStatus.DELIVERD)));
+		criteria.and("subStatus").in(Arrays.asList(((String) filters.get("subStatus")).split(",")));
+		try {
+			criteria.andOperator(Criteria.where("updateDate").gte(format.parse((String) filters.get("updateDate1"))),Criteria.where("updateDate").lte(format.parse((String) filters.get("updateDate2"))));
+		} catch (ParseException e) {
+			
+		}
+		MatchOperation report = Aggregation.match(criteria);
+		GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo").first(Aggregation.ROOT).as("Case");
+		SortOperation sortByBookingDate = Aggregation.sort(new Sort(Direction.DESC, "Case.bookingDate"));
+		Aggregation aggregation = Aggregation.newAggregation(report,getCaseWithMaxVersion,sortByBookingDate);
+		AggregationResults<CaseSearchResult> result = mongoTemplate.aggregate(aggregation, "case", CaseSearchResult.class);
+		return result.getMappedResults();
+	}
+	
 	private Criteria applyFilter2(Map<String, Object> filters) {
 		Criteria criteria = new Criteria();
 		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
@@ -137,7 +170,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 				criteria.and("Case."+k+".$id").is(new ObjectId((String)v));
 				break;
 			}
-			case "aptDate1": {
+			case "aptDate1": { 
 				if(!StringUtils.isEmpty(v) && !StringUtils.isEmpty(filters.get("aptDate2"))) {
 					try {
 						Date aptDate2 = format.parse((String) filters.get("aptDate2"));
