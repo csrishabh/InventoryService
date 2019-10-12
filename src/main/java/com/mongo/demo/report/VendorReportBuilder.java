@@ -91,6 +91,7 @@ public class VendorReportBuilder extends AbstractXlsxView {
         rowCount++;
         
         for (CaseSearchResult result : cases) {
+        	if(!result.getStatus().equals(CaseStatus.BOOKED) && !result.getStatus().equals(CaseStatus.INPROCESS)){
             Row aRow = sheet.createRow(rowCount++);
             aRow.createCell(0).setCellValue(result.getId());
             aRow.createCell(1).setCellValue(result.getPatientName());
@@ -131,6 +132,7 @@ public class VendorReportBuilder extends AbstractXlsxView {
             
             rowCount++;
            
+        	}
         }
         
 	}
