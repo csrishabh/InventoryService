@@ -239,8 +239,6 @@ public class CaseService {
 			Date bookingDate = dateFormat.parse(date);
 			User user = userService.findUserByEmail(userId);
 			List<CaseSearchResult> result = new ArrayList<CaseSearchResult>();
-			
-			if(user.getRoles().contains("ADMIN_CASE")) {
 				Sort sort = new Sort(Sort.Direction.DESC, "version");
 				List<Case> cases = caseRepo.getCaseHistroy(opdNo,bookingDate,sort);
 				cases.stream().forEach(c ->{
@@ -263,11 +261,6 @@ public class CaseService {
 				});
 				response.setSuccess(true);
 			    response.setData(result);
-			}
-			else {
-				response.setSuccess(false);
-				response.setMsg(Arrays.asList(StringConstant.CASE_NOT_FOUND));
-			}	
 		}
 		catch (Exception e) {
 			response.setSuccess(false);
