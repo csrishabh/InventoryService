@@ -1,5 +1,6 @@
 package com.mongo.demo.controller;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.mongo.demo.document.AppResponse;
 import com.mongo.demo.report.PaymentReportBuilder;
 import com.mongo.demo.report.VendorReportBuilder;
 import com.mongo.demo.service.ExportReportService;
@@ -21,6 +23,9 @@ public class ExportReportController {
 	
 	@Autowired
 	private ExportReportService exportReportService;
+	
+	@Autowired 
+	private VendorReportBuilder vendorReportBuilder;
 	
 	@RequestMapping(value = "/inventory" ,method = RequestMethod.GET)
 	public ModelAndView exportPaymentReport(HttpServletResponse response){
@@ -33,13 +38,13 @@ public class ExportReportController {
 	}
 	
 	@RequestMapping(value = "/report/vendor" ,method = RequestMethod.GET)
-	public ModelAndView exporVendorReport(HttpServletResponse response, @RequestParam Map<String, Object> filters ){
-		
-		Map<String, Object> fileData = exportReportService.exportVendorReport(filters);
-		response.setContentType( "application/ms-excel" );
-	    response.setHeader( "Content-disposition", "attachment; filename=myfile.xls" );
-		return new ModelAndView(new VendorReportBuilder(), fileData);
-		
+	public AppResponse<String> exporVendorReport(@RequestParam Map<String, Object> filters ){
+		AppResponse<String> response = new AppResponse<>();
+		vendorReportBuilder.generateVendorReport(filters);
+		response.setSuccess(true);
+		response.setMsg(Arrays.asList("Report has been send via email"));
+		return response;
 	}
+	
 
 }

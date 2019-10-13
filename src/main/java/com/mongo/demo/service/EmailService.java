@@ -1,7 +1,23 @@
 package com.mongo.demo.service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.mail.BodyPart;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
+
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -40,6 +56,49 @@ public class EmailService {
 			System.out.println("Unable to send mail "+ product.getName());
 		}
 
+	}
+	
+	public void sendVendorReport(Workbook workbook) throws MessagingException, IOException {
+		
+		// Define message
+	    MimeMessage message = emailSender.createMimeMessage();
+	    emailIds.forEach(email ->{
+	    	 try {
+				message.addRecipient(Message.RecipientType.TO,
+					      new InternetAddress(email));
+			} catch (AddressException e) {
+				e.printStackTrace();
+			} catch (MessagingException e) {
+				e.printStackTrace();
+			}
+	    });
+	    message.setSubject("Vendor Report");
+
+	    // Create the message part
+	    BodyPart messageBodyPart = new MimeBodyPart();
+
+	    // Fill the message
+	    messageBodyPart.setText("Hi, /n PFA");
+
+	    Multipart multipart = new MimeMultipart();
+	    multipart.addBodyPart(messageBodyPart);
+	    
+	    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	    workbook.write(bos); // write excel data to a byte array
+	    bos.close();
+	    workbook.close();
+	    // Part two is attachment
+	    messageBodyPart = new MimeBodyPart();
+	    DataSource source = new ByteArrayDataSource(bos.toByteArray(), "application/vnd.ms-excel");
+	    messageBodyPart.setDataHandler(new DataHandler(source));
+	    messageBodyPart.setFileName("Report");
+	    multipart.addBodyPart(messageBodyPart);
+
+	    // Put parts in message
+	    message.setContent(multipart);
+	    
+	    emailSender.send(message);
+		
 	}
 
 }
