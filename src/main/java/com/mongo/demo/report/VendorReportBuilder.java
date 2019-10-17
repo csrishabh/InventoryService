@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import com.mongo.demo.document.CaseSearchResult;
 import com.mongo.demo.document.CaseStatus;
 import com.mongo.demo.document.CrownDetail;
+import com.mongo.demo.document.User;
+import com.mongo.demo.repo.UserRepository;
 import com.mongo.demo.service.EmailService;
 import com.mongo.demo.service.ExportReportService;
 
@@ -31,6 +33,9 @@ public class VendorReportBuilder {
 
 	@Autowired
 	private EmailService emailService;
+	
+	@Autowired
+	private UserRepository userRepository;
 
 	public void generateVendorReport(Map<String, Object> filters) {
 
@@ -48,11 +53,12 @@ public class VendorReportBuilder {
 
 		@Override
 		public void run() {
-
+			String vendorId = (String) filters.get("vender");
+			User vendor = userRepository.findById(vendorId).get();
 			List<CaseSearchResult> results = exportReportService.exportVendorReport(filters);
-			Workbook workbook = buildExcelDocument(results);
+			Workbook workbook = buildExcelDocument(results,vendor);
 			try {
-				emailService.sendVendorReport(workbook);
+				emailService.sendVendorReport(workbook,vendor);
 			} catch (MessagingException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -60,7 +66,7 @@ public class VendorReportBuilder {
 			}
 		}
 		
-		private Workbook buildExcelDocument(List<CaseSearchResult> results)	{
+		private Workbook buildExcelDocument(List<CaseSearchResult> results, User vendor)	{
 
 			Workbook workbook = new HSSFWorkbook();
 			List<CaseSearchResult> cases = results;
@@ -109,6 +115,12 @@ public class VendorReportBuilder {
 			headerStyle.setFont(headerFont);
 
 			int rowCount = 0;
+			
+			Row report = sheet.createRow(rowCount++);
+			report.createCell(0).setCellValue(vendor.getFullname());
+			report.createCell(1).setCellValue("");
+			report.createCell(2).setCellValue((String)filters.get("updateDate1"));
+			report.createCell(3).setCellValue((String)filters.get("updateDate2"));
 
 			Row header = sheet.createRow(rowCount++);
 			header.createCell(0).setCellValue("OPD NO.");

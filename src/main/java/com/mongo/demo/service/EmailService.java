@@ -25,6 +25,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 import com.mongo.demo.document.Product;
+import com.mongo.demo.document.User;
 import com.mongo.utility.Config;
 
 @Component
@@ -58,7 +59,7 @@ public class EmailService {
 
 	}
 	
-	public void sendVendorReport(Workbook workbook) throws MessagingException, IOException {
+	public void sendVendorReport(Workbook workbook, User vendor) throws MessagingException, IOException {
 		
 		// Define message
 	    MimeMessage message = emailSender.createMimeMessage();
@@ -72,13 +73,15 @@ public class EmailService {
 				e.printStackTrace();
 			}
 	    });
-	    message.setSubject("Vendor Report");
+	    message.addRecipient(Message.RecipientType.TO,
+			      new InternetAddress(vendor.getUsername()));
+	    message.setSubject("Vendor Report : "+vendor.getFullname());
 
 	    // Create the message part
 	    BodyPart messageBodyPart = new MimeBodyPart();
 
 	    // Fill the message
-	    messageBodyPart.setText("Hi, /n PFA");
+	    messageBodyPart.setText("Hi, PFA");
 
 	    Multipart multipart = new MimeMultipart();
 	    multipart.addBodyPart(messageBodyPart);
@@ -91,7 +94,7 @@ public class EmailService {
 	    messageBodyPart = new MimeBodyPart();
 	    DataSource source = new ByteArrayDataSource(bos.toByteArray(), "application/vnd.ms-excel");
 	    messageBodyPart.setDataHandler(new DataHandler(source));
-	    messageBodyPart.setFileName("Report");
+	    messageBodyPart.setFileName(vendor.getFullname()+" Report");
 	    multipart.addBodyPart(messageBodyPart);
 
 	    // Put parts in message

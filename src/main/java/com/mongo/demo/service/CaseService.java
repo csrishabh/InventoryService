@@ -145,6 +145,7 @@ public class CaseService {
 			Case latestStatus = getLatestCase(c.getId(), dateFormat.format(c.getCase().getBookingDate())).getData();
 			c.getCase().setStatus(latestStatus.getStatus());
 			c.getCase().setSubStatus(latestStatus.getSubStatus());
+			c.getCase().setCrown(latestStatus.getCrown());
 			try {
 					if(caseRepo.isPaidBefore(c.getId(),c.getCase().getBookingDate(), (String)filters.get("vender"), Config.fomatDate(dateFormat.parse((String) filters.get("updateDate1"))))) {
 						c.setAlreadyPaid(true);
