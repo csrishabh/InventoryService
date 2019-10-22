@@ -3,6 +3,7 @@ package com.mongo.demo.document;
 public enum CROWNTYPE {
 	
 	FULL_METAL_CERAMIC("Full Metal Creamic"),
+	FULL_METAL_CERAMIC_PLUS("Full Metal Creamic Plus"),
 	CERAMIC_FACING("Creamic Facing"), 
 	METAL_FREE("Metal Free"), 
 	TEMPORARY("Temporary"),
