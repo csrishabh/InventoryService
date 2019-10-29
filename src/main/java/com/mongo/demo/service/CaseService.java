@@ -119,7 +119,7 @@ public class CaseService {
 				response.setSuccess(false);
 				response.setMsg(Arrays.asList(StringConstant.CASE_ALREADY_UPDATED));
 			}
-			else if (c.getVender().getId() != report.getVender().getId()) {
+			else if (!c.getVender().getId().equals(report.getVender().getId())) {
 				response.setSuccess(false);
 				response.setMsg(Arrays.asList(StringConstant.VENDOR_CHANGE_NOT_ALLOWED));
 			}
