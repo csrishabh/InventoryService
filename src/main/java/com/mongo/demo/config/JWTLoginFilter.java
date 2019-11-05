@@ -21,9 +21,12 @@ import com.mongo.demo.service.TokenAuthenticationService;
 
 public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
 	
-	public JWTLoginFilter(String url, AuthenticationManager authManager) {
+	private TokenAuthenticationService tokenService;
+	
+	public JWTLoginFilter(String url, AuthenticationManager authManager, TokenAuthenticationService tokenService) {
 	    super(new AntPathRequestMatcher(url));
 	    setAuthenticationManager(authManager);
+	    this.tokenService = tokenService;
 	  }
 
 	  @Override
@@ -46,8 +49,7 @@ public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
 	      HttpServletRequest req,
 	      HttpServletResponse res, FilterChain chain,
 	      Authentication auth) throws IOException, ServletException {
-	    TokenAuthenticationService
-	        .addAuthentication(res, auth.getName());
+	    tokenService.addAuthentication(res, auth.getName());
 	  }
 
 }

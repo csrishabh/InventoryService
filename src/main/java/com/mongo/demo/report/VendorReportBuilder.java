@@ -14,16 +14,21 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mongo.demo.document.CaseSearchResult;
 import com.mongo.demo.document.CaseStatus;
 import com.mongo.demo.document.CrownDetail;
+import com.mongo.demo.document.CrownMapping;
 import com.mongo.demo.document.User;
+import com.mongo.demo.repo.CrownMappingRepo;
 import com.mongo.demo.repo.UserRepository;
+import com.mongo.demo.service.CrownMappingService;
 import com.mongo.demo.service.EmailService;
 import com.mongo.demo.service.ExportReportService;
+import com.mongo.utility.Config;
 
 @Service
 public class VendorReportBuilder {
@@ -33,9 +38,12 @@ public class VendorReportBuilder {
 
 	@Autowired
 	private EmailService emailService;
-	
+
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private CrownMappingService crownMappingService;
 
 	public void generateVendorReport(Map<String, Object> filters) {
 
@@ -56,17 +64,17 @@ public class VendorReportBuilder {
 			String vendorId = (String) filters.get("vender");
 			User vendor = userRepository.findById(vendorId).get();
 			List<CaseSearchResult> results = exportReportService.exportVendorReport(filters);
-			Workbook workbook = buildExcelDocument(results,vendor);
+			Workbook workbook = buildExcelDocument(results, vendor);
 			try {
-				emailService.sendVendorReport(workbook,vendor);
+				emailService.sendVendorReport(workbook, vendor);
 			} catch (MessagingException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		
-		private Workbook buildExcelDocument(List<CaseSearchResult> results, User vendor)	{
+
+		private Workbook buildExcelDocument(List<CaseSearchResult> results, User vendor) {
 
 			Workbook workbook = new HSSFWorkbook();
 			List<CaseSearchResult> cases = results;
@@ -115,19 +123,19 @@ public class VendorReportBuilder {
 			headerStyle.setFont(headerFont);
 
 			int rowCount = 0;
-			
+
 			Row report = sheet.createRow(rowCount++);
 			report.createCell(0).setCellValue(vendor.getFullname());
 			report.createCell(1).setCellValue("");
-			report.createCell(2).setCellValue((String)filters.get("updateDate1"));
-			report.createCell(3).setCellValue((String)filters.get("updateDate2"));
+			report.createCell(2).setCellValue((String) filters.get("updateDate1"));
+			report.createCell(3).setCellValue((String) filters.get("updateDate2"));
 
 			Row header = sheet.createRow(rowCount++);
-			header.createCell(0).setCellValue("OPD NO.");
-			header.createCell(1).setCellValue("Patient Name");
-			header.createCell(2).setCellValue("Status");
-			header.createCell(3).setCellValue("Sub Status");
-			header.createCell(4).setCellValue("Booking Date");
+			header.createCell(0).setCellValue("Booking Date");
+			header.createCell(1).setCellValue("OPD NO.");
+			header.createCell(2).setCellValue("Patient Name");
+			header.createCell(3).setCellValue("Status");
+			header.createCell(4).setCellValue("Sub Status");
 			header.createCell(5).setCellValue("Remark");
 			header.getCell(0).setCellStyle(headerStyle);
 			header.getCell(1).setCellStyle(headerStyle);
@@ -141,11 +149,11 @@ public class VendorReportBuilder {
 			for (CaseSearchResult result : cases) {
 				if (!result.getStatus().equals(CaseStatus.BOOKED) && !result.getStatus().equals(CaseStatus.INPROCESS)) {
 					Row aRow = sheet.createRow(rowCount++);
-					aRow.createCell(0).setCellValue(result.getId());
-					aRow.createCell(1).setCellValue(result.getPatientName());
-					aRow.createCell(2).setCellValue(result.getStatus());
-					aRow.createCell(3).setCellValue(result.getSubStatus());
-					aRow.createCell(4).setCellValue(result.getBookingDate());
+					aRow.createCell(0).setCellValue(result.getBookingDate());
+					aRow.createCell(1).setCellValue(result.getId());
+					aRow.createCell(2).setCellValue(result.getPatientName());
+					aRow.createCell(3).setCellValue(result.getStatus());
+					aRow.createCell(4).setCellValue(result.getSubStatus());
 					if (result.getStatus().equals(CaseStatus.CANCELED)) {
 						aRow.getCell(0).setCellStyle(canceledStyle);
 						aRow.getCell(1).setCellStyle(canceledStyle);
@@ -174,6 +182,15 @@ public class VendorReportBuilder {
 						cRow.createCell(0).setCellValue(cd.getType().getName());
 						cRow.createCell(1).setCellValue(cd.getCrownNo());
 						cRow.createCell(2).setCellValue(cd.getShade());
+						CrownMapping mapping = crownMappingService.getCrownMapping(cd.getType(),vendor.getId(), cd.getVerison());
+						int count = cd.getCrownNo().trim().split(",").length;
+						double price = 0;
+						if(mapping!=null) {
+							price = Config.format(mapping.getPrice(),Config.PRICE_FORMATTER);
+						}
+						cRow.createCell(3).setCellValue(price);
+						cRow.createCell(4).setCellValue(count);
+						cRow.createCell(5).setCellValue(price*count);
 					}
 
 					rowCount++;
@@ -184,7 +201,5 @@ public class VendorReportBuilder {
 		}
 
 	}
-
-	
 
 }
