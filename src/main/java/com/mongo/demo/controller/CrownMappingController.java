@@ -21,7 +21,7 @@ public class CrownMappingController {
 	@Autowired
 	CrownMappingService crownMappingService;
 	
-	@PreAuthorize ("hasAuthority('ADMIN_CASE')")
+	@PreAuthorize ("hasAuthority('USER_CASE')")
 	@GetMapping("/crown/{vendorId}")
 	public AppResponse<List<CrownMapping>> getCrownMappingByVendor(@PathVariable("vendorId") String vendorId){
 		return crownMappingService.getCrownMappingByVendor(vendorId);

@@ -118,7 +118,7 @@ public class CaseRepoCustomImpl implements CaseRepoCustom {
 			
 		}
 		MatchOperation report = Aggregation.match(criteria);
-		GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo").first(Aggregation.ROOT).as("Case");
+		GroupOperation getCaseWithMaxVersion = Aggregation.group("opdNo","bookingDate").first(Aggregation.ROOT).as("Case");
 		SortOperation sortByBookingDate = Aggregation.sort(new Sort(Direction.DESC, "Case.bookingDate"));
 		Aggregation aggregation = Aggregation.newAggregation(report,getCaseWithMaxVersion,sortByBookingDate);
 		AggregationResults<CaseSearchResult> result = mongoTemplate.aggregate(aggregation, "case", CaseSearchResult.class);
