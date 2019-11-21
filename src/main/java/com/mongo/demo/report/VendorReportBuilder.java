@@ -14,7 +14,6 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +22,6 @@ import com.mongo.demo.document.CaseStatus;
 import com.mongo.demo.document.CrownDetail;
 import com.mongo.demo.document.CrownMapping;
 import com.mongo.demo.document.User;
-import com.mongo.demo.repo.CrownMappingRepo;
 import com.mongo.demo.repo.UserRepository;
 import com.mongo.demo.service.CrownMappingService;
 import com.mongo.demo.service.EmailService;
@@ -145,7 +143,8 @@ public class VendorReportBuilder {
 			header.getCell(5).setCellStyle(headerStyle);
 
 			rowCount++;
-
+			
+			double total = 0;
 			for (CaseSearchResult result : cases) {
 				if (!result.getStatus().equals(CaseStatus.BOOKED) && !result.getStatus().equals(CaseStatus.INPROCESS)) {
 					Row aRow = sheet.createRow(rowCount++);
@@ -190,13 +189,26 @@ public class VendorReportBuilder {
 						}
 						cRow.createCell(3).setCellValue(price);
 						cRow.createCell(4).setCellValue(count);
+						if(result.getStatus().equals(CaseStatus.CANCELED) || result.isAlreadyPaid()) {
+							cRow.createCell(5).setCellValue(0);
+						}
+						else {
 						cRow.createCell(5).setCellValue(price*count);
+						total = total + (price*count);
+						}
 					}
-
 					rowCount++;
 
 				}
 			}
+			Row totalRow = sheet.createRow(rowCount++);
+			totalRow.createCell(0).setCellValue("");
+			totalRow.createCell(1).setCellValue("");
+			totalRow.createCell(2).setCellValue("");
+			totalRow.createCell(3).setCellValue("");
+			totalRow.createCell(4).setCellValue("Total");
+			totalRow.createCell(5).setCellValue(total);
+			
 			return workbook;
 		}
 
