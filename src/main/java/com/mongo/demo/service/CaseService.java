@@ -146,12 +146,12 @@ public class CaseService {
 		final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("dd-MM-yyyy hh.mm aa");
 		final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 		results.stream().forEach(c ->{
-			Case latestStatus = getLatestCase(c.getId(), dateFormat.format(c.getCase().getBookingDate())).getData();
+			Case latestStatus = getLatestCase(c.getCase().getOpdNo(), dateFormat.format(c.getCase().getBookingDate())).getData();
 			c.getCase().setStatus(latestStatus.getStatus());
 			c.getCase().setSubStatus(latestStatus.getSubStatus());
 			c.getCase().setCrown(latestStatus.getCrown());
 			try {
-					if(caseRepo.isPaidBefore(c.getId(),c.getCase().getBookingDate(), (String)filters.get("vender"), Config.fomatDate(dateFormat.parse((String) filters.get("updateDate1"))))) {
+					if(caseRepo.isPaidBefore(c.getCase().getOpdNo(),c.getCase().getBookingDate(), (String)filters.get("vender"), Config.fomatDate(dateFormat.parse((String) filters.get("updateDate1"))))) {
 						c.setAlreadyPaid(true);
 					}
 			} catch (ParseException e1) {
