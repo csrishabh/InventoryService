@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mongo.demo.document.CaseSearchResult;
+import com.mongo.demo.document.Transction;
 import com.mongo.demo.repo.ProductRepo;
+import com.mongo.demo.repo.TransctionRepo;
 
 @Service
 public class ExportReportService {
@@ -18,6 +20,12 @@ public class ExportReportService {
 	
 	@Autowired
 	private CaseService caseService;
+	
+	@Autowired
+	private TransctionRepo transctionRepo;
+	
+	@Autowired 
+	private CustomUserDetailsService userService;
 
 	
 	public Map<String, Object> exportPaymentReport() {
@@ -33,5 +41,15 @@ public class ExportReportService {
 		
 		return caseService.getVendorPayment(filters);
 
+	}
+	
+	public Map<String, Object> exportTransctionReport(Map<String, Object> filters) {
+		Map<String, Object> fileData = new HashMap<>();
+		List<Transction> res =  transctionRepo.getAllTransction(filters);
+		res.stream().forEach(t ->{
+			t.setAddBy(userService.findUserByEmail(t.getAddBy()).getFullname());
+		});
+		fileData.put("transactions", res);
+		return fileData;
 	}
 }
