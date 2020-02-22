@@ -73,8 +73,6 @@ public class EmailService {
 				e.printStackTrace();
 			}
 	    });
-	    message.addRecipient(Message.RecipientType.TO,
-			      new InternetAddress(vendor.getUsername()));
 	    message.setSubject("Vendor Report : "+vendor.getFullname());
 
 	    // Create the message part

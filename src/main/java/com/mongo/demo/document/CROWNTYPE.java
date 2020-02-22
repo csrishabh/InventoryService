@@ -10,7 +10,8 @@ public enum CROWNTYPE {
 	REMOVEABLE_PARTIAL_DENTURE("Removeable Partial Denture"),
 	COMPLETE_DENTURE_UPPER("Complete Denture Upper"),
 	COMPLETE_DENTURE_LOWER("Complete Denture Lower"),
-	NIGHT_GUARD("Night Gard");
+	NIGHT_GUARD("Night Gard"),
+	METAL_CROWN("Metal Crown");
 	
 	private String name;
 
