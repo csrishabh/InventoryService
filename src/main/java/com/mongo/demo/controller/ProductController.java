@@ -3,11 +3,10 @@ package com.mongo.demo.controller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,31 +33,37 @@ public class ProductController {
 	
 	@Autowired
 	EmailService emailService;
-
-	@GetMapping("/test")
-	public String test() {
-		Product p = repo.findById("5c4b4a525b599c0004668d93").get();
-		emailService.sendAlertMail(p);
-		return "This is Mongo API";
-	}
 	
 	@PostMapping("/addProduct")
 	public ResponseEntity<Product> addProduct(@RequestBody Product item) {
 		try {	
+		List<Product> products = repo.findByNameIgnoreCase(item.getName());
+		if(products.size() == 0) {
+		item.setName(item.getName().toUpperCase());	
 		item.setAlertBack((long)(item.getAlert()*Config.QTY_FORMATTER));
 		item = repo.save(item);
 		return new ResponseEntity<Product>(item, HttpStatus.CREATED);
+		}
+		else {
+			return new ResponseEntity<Product>(HttpStatus.ALREADY_REPORTED);
+		}
 		}
 		catch(Exception e) {
 			return new ResponseEntity<Product>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		
 	}
-
+	
 	@GetMapping("/products")
-	public List<Product> getAllProducts() {
-
-		List<Product> items = formatProducts(repo.getAllProduct());
+	public List<Product> getAllProducts(@RequestParam Map<String, Object> filters) {
+		List<Product> items = new ArrayList<>();
+		if(null != filters && null != filters.get("name")) {
+			String regex = (String) filters.get("name");
+			items = formatProducts(repo.findByNameStartingWith(regex));
+		}
+		else {
+		items = formatProducts(repo.getAllProduct());
+		}
 		return items;
 	}
 	

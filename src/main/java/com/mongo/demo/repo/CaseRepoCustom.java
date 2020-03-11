@@ -1,5 +1,6 @@
 package com.mongo.demo.repo;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -18,5 +19,10 @@ public interface CaseRepoCustom {
 	public List<Document> findLateCaseCount();
 	
 	public List<CaseSearchResult> findAllLateCase() ;
+	
+	public List<CaseSearchResult> getVendorReport(Map<String, Object> filters);
+	
+	public boolean isPaidBefore(String OpdNo, Date bookingDate ,String vendorId, Date updateDate);
+	
 
 }

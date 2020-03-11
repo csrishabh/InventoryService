@@ -5,7 +5,6 @@ import java.util.Set;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.IndexDirection;
 import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 
 public class User {
 	
@@ -16,7 +15,6 @@ public class User {
 	private String password;
 	private String fullname;
 	private boolean enabled;
-	@DBRef
 	private Set<String> roles;
 	public String getId() {
 		return id;
