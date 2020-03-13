@@ -78,7 +78,7 @@ public class TransctionReportBuilder extends AbstractXlsxView {
 		for (Transction trns : transctions) {
 			Row aRow = sheet.createRow(rowCount++);
 			aRow.createCell(0).setCellValue(formatter.format(trns.getDate()));
-			aRow.createCell(1).setCellValue(trns.getProductName());
+			aRow.createCell(1).setCellValue(trns.getProductName().toUpperCase());
 			aRow.createCell(2).setCellValue(Config.format(trns.getQuantityBack(), Config.QTY_FORMATTER));
 			aRow.createCell(3).setCellValue(trns.getType().toString());
 			aRow.createCell(4).setCellValue(trns.getAddBy());
