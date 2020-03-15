@@ -16,31 +16,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mongo.demo.document.AppResponse;
-import com.mongo.demo.document.Consignment;
-import com.mongo.demo.service.ConsignmentService;
+import com.mongo.demo.document.Manifest;
+import com.mongo.demo.service.ManifestService;
 
 @RestController
-public class ConsignmentController {
+public class ManifestController {
+
 	
 	@Autowired
-	private ConsignmentService consignmentService;
+	private ManifestService manifestService;
 	
-	@PostMapping("/add/consignment")
-	public AppResponse<Consignment> addConsignment(@RequestBody Consignment c) {
-	
-		return consignmentService.addConsignment(c);
+	@PostMapping("/add/manifest")
+	public AppResponse<String> createManifest(@RequestBody Manifest manifest){
+		
+		return manifestService.createManifest(manifest);
 	}
 	
-	@PostMapping("/deleted/consignment")
-	public AppResponse<Void> deletedConsignment(@RequestBody String biltyNo) {
-	
-		return consignmentService.deletedConsignment(biltyNo);
-	}
-	
-	@GetMapping("/get/consignments")
-	public ResponseEntity<List<Document>> getConsignmentHistory(HttpServletRequest request, @RequestParam Map<String, Object> filters){
+	@GetMapping("/get/manifest")
+	public ResponseEntity<List<Document>> getManifestHistory(HttpServletRequest request, @RequestParam Map<String, Object> filters){
 		try {
-		List<Document> consignments = consignmentService.getConsignmentHistory(filters);
+		List<Document> consignments = manifestService.getManifestHistory(filters);
 		return new ResponseEntity<List<Document>>(consignments, HttpStatus.OK);
 		}
 		catch(Exception e) {
@@ -48,5 +43,4 @@ public class ConsignmentController {
 		}
 		
 	}
-	
 }

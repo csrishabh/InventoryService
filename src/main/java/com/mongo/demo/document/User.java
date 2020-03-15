@@ -24,5 +24,6 @@ public class User {
 	private String address;
 	private boolean enabled;
 	private Set<String> roles;
+	private String gstNo;
 	
 }

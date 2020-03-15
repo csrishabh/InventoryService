@@ -13,7 +13,7 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     User findByUsername(String email);
     
-    @Query(value="{'fullname' : {$regex : ?0 , $options: 'i'}, roles: { $elemMatch: { $in: [?1] } }}" , fields="{ fullname: 1, username:1 , mobileNo:1, address:1 }")
+    @Query(value="{'fullname' : {$regex : ?0 , $options: 'i'}, roles: { $elemMatch: { $in: [?1] } }}" , fields="{ fullname: 1, username:1 , mobileNo:1, address:1, gstNo:1 }")
     List<User> findByNameStartingWithAndType(String regexp, String role);
     
     @Query(value="{'fullname' : {$regex : ?0 , $options: 'i'}}" , fields="{ fullname: 1 }")

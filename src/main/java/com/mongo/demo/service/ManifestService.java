@@ -1,14 +1,24 @@
 package com.mongo.demo.service;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mongo.demo.document.AppResponse;
 import com.mongo.demo.document.Manifest;
+import com.mongo.demo.document.Unit;
+import com.mongo.demo.document.UnitMapping;
+import com.mongo.demo.document.User;
 import com.mongo.demo.repo.ConsignmentRepo;
 import com.mongo.demo.repo.ManifestRepo;
+import com.mongo.utility.Config;
 import com.mongo.utility.StringConstant;
 
 @Service
@@ -21,6 +31,12 @@ public class ManifestService {
 	@Autowired
 	private ConsignmentRepo consignmentRepo;
 	
+	@Autowired
+	private UnitMappingService unitMappingService;
+	
+	@Autowired
+	private CustomUserDetailsService userService;
+	
 	
 	public AppResponse<String> createManifest(Manifest manifest){
 		AppResponse<String> res = new AppResponse<>();
@@ -31,15 +47,25 @@ public class ManifestService {
 			return res;
 		}
 		
-		boolean isAnyConProcessed = consignmentRepo.isAnyConsignmentProcessed(manifest.getConsignments());
+		boolean isAnyConDeliverd = consignmentRepo.isAnyConsignmentDeliverd(manifest.getConsignments());
 		
-		if(isAnyConProcessed) {
+		if(isAnyConDeliverd) {
 			res.setSuccess(false);
 			res.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+			return res;
+		}
+		boolean isAnyConDeleted = consignmentRepo.isAnyConsignmentDeleted(manifest.getConsignments());
+		
+		if(isAnyConDeleted) {
+			res.setSuccess(false);
+			res.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+			return res;
 		}
 		else {
+			manifest.setCreatedDate(Config.fomatDate(new Date()));
 			manifest = manifestRepo.save(manifest);
 			consignmentRepo.setConsignmentDeliverd(manifest.getConsignments(), manifest.getDes());
+			consignmentRepo.updateManifest(manifest.getConsignments(), String.valueOf(manifest.getRefId()));
 			res.setSuccess(true);
 			res.setMsg(Arrays.asList(StringConstant.MANIFEST_CREATED_SUCCESS));
 			res.setData(String.valueOf(manifest.getRefId()));
@@ -52,6 +78,18 @@ public class ManifestService {
 		}
 		
 		return res;
+	}
+	
+	public List<Document> getManifestHistory(Map<String, Object> filters){
+		final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+		List<Document> results = manifestRepo.searchManifest(filters);
+		results.stream().forEach(r->{
+			r.append("createdDate", dateFormat.format(r.getDate("createdDate")));
+		    User user = userService.findUserByEmail(r.get("company", List.class).get(0).toString());
+			UnitMapping mapping = unitMappingService.getUnitMapping(Unit.valueOf(r.getString("paidBy")), user.getId(), r.getInteger("unitComMappingVer").intValue());
+			r.append("price", Config.format(mapping.getPrice(), Config.PRICE_FORMATTER));
+		});
+		return results;
 	}
 	
 	private boolean isValidate(Manifest manifest) {

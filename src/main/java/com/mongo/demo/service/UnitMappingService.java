@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,10 @@ public class UnitMappingService {
 	
 	@Autowired
 	private UserRepository userRepo;
+	
+	public UnitMapping getUnitMapping(Unit type, String companyId, int version) {
+		return repo.getUnitMappingByTypeAndCompany(type, new ObjectId(companyId), version);
+	}
 
 	public AppResponse<List<UnitMapping>> getUnitMappingByVendor(String vendorId) {
 

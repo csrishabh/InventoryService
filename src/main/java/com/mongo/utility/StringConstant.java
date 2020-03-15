@@ -26,6 +26,7 @@ public class StringConstant {
 	public static final String PASS_NOT_CORRECT = "Please enter correct password";
 	public static final String PASS_CHANGE_SUCCESS = "Password change successfuly";
 	public static final String INVALID_PASSWORD = "Wrong Username & Password";
+	public static final String CONSIGNEMT_DELETE_SUCCESS = "Consignment deleted successfully";
 	
 	
 

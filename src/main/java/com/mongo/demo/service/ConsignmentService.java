@@ -26,12 +26,13 @@ public class ConsignmentService {
 		AppResponse<Consignment> res = new AppResponse<>();
 		try {
 			if (isValidate(c)) {
-				if(repo.isDuplicateConsignment(c.getBiltyNo())) {
+				if(repo.isDuplicateConsignment(c.getBiltyNo().toUpperCase())) {
 					res.setSuccess(false);
 					res.setMsg(Arrays.asList(StringConstant.FOUND_DUPLICATE_CONSIGNMENT));
 					return res;
 				}
 				c.setBookingDate(Config.fomatDate(c.getBookingDate()));
+				c.setBiltyNo(c.getBiltyNo().toUpperCase());
 				c = repo.save(c);
 				res.setData(c);
 				res.setSuccess(true);
@@ -59,9 +60,10 @@ public class ConsignmentService {
 			double discount = r.getDouble("discount");
 			double other1 = r.getDouble("other1");
 			double other2 = r.getDouble("other2");
+			total = total+other1+other2;
 			double totalTax = ((total-discount)*tax)/100;
-			double subTotal = total-discount+totalTax;
-			double grandTotal = subTotal+other1+other2;
+			double subTotal = total-discount;
+			double grandTotal = subTotal+totalTax;
 			r.getDate("bookingDate");
 			r.append("subTotal", decimalFormat.format(subTotal));
 			r.append("grandTotal", decimalFormat.format(grandTotal));
@@ -73,6 +75,25 @@ public class ConsignmentService {
 			}
 		});
 		return results;
+	}
+	
+	public AppResponse<Void> deletedConsignment(String biltyNo) {
+		
+		AppResponse<Void> res = new AppResponse<>();
+		
+		boolean isConsignmentProcessed = repo.isConsignmentProcessed(biltyNo);
+		if(isConsignmentProcessed) {
+			res.setSuccess(false);
+			res.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+			return res;
+		}
+		else {
+			repo.deleteConsignment(biltyNo);
+			res.setSuccess(true);
+			res.setMsg(Arrays.asList(StringConstant.CONSIGNEMT_DELETE_SUCCESS));
+			return res;
+		}
+		
 	}
 	
 

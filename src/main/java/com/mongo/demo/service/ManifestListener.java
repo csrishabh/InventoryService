@@ -16,8 +16,8 @@ public class ManifestListener extends AbstractMongoEventListener<Manifest> {
 		
 		@Override
 		public void onBeforeConvert(BeforeConvertEvent<Manifest> event) {
-		    if (event.getSource().getRefId() < 1) {
-		        event.getSource().setRefId(sequenceGenerator.generateSequence(Manifest.SEQUENCE_NAME));
+		    if (event.getSource().getRefId() == null) {
+		        event.getSource().setRefId(String.valueOf(sequenceGenerator.generateSequence(Manifest.SEQUENCE_NAME)));
 		    }
 		}
 		

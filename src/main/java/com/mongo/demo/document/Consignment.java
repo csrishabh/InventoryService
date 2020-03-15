@@ -2,9 +2,11 @@ package com.mongo.demo.document;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -30,6 +32,7 @@ public class Consignment implements Serializable {
 	private String consignor;
 	private BillingType billingType;
 	private int paidBy;
+	@Indexed
 	private String biltyNo;
 	private String des;
 	private String contents;
@@ -46,6 +49,6 @@ public class Consignment implements Serializable {
 	private boolean isDeliverd;
 	private boolean isDeleted;
 	private String remark;
-	private String maniFestRefNo;
+	private List<String> maniFestRefNo;
 	
 }
