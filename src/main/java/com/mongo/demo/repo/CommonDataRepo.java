@@ -12,6 +12,6 @@ import com.mongo.demo.document.CommonData;
 public interface CommonDataRepo extends MongoRepository<CommonData, String> {
 	
 	
-	@Query(value="{'name' : {$regex : ?0 , $options: 'i'}, typeId: ?1 }" , fields="{ name: 1, value:1 }")
-    List<CommonData> findByNameStartingWithAndType(String regexp, int typeId);
+	@Query(value="{'name' : {$regex : ?0 , $options: 'i'}, typeId: ?1 ,isDisabled: ?2}" , fields="{ name: 1, value:1 }")
+    List<CommonData> findByNameStartingWithAndType(String regexp, int typeId , boolean isDisabled);
 }

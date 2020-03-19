@@ -6,6 +6,8 @@ public class StringConstant {
 	public static final String CONSIGNMENT_CREATED_SUCCESS = "Consignment booked successfully";
 	public static final String MANIFEST_CREATED_SUCCESS = "Manifest created successfully";
 	public static final String CASE_NOT_FOUND = "CASE NOT FOUND";
+	public static final String CONSIGNMENT_NOT_FOUND = "Consignment not found";
+	public static final String MANIFEST_NOT_FOUND = "Manifest not found";
 	public static final String CROWN_MAPPING_NOT_FOUND = "CROWN MAPPING NOT FOUND";
 	public static final String UNIT_MAPPING_NOT_FOUND = "UNIT MAPPING NOT FOUND";
 	public static final String PRODUCT_NOT_FOUND = "PRODUCT NOT FOUND";
@@ -27,6 +29,8 @@ public class StringConstant {
 	public static final String PASS_CHANGE_SUCCESS = "Password change successfuly";
 	public static final String INVALID_PASSWORD = "Wrong Username & Password";
 	public static final String CONSIGNEMT_DELETE_SUCCESS = "Consignment deleted successfully";
+	public static final String MANIFEST_DELETE_SUCCESS = "Manifest deleted successfully";
+	public static final String MANIFEST_UPDATE_SUCCESS = "Manifest updated successfully";
 	
 	
 

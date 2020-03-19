@@ -15,4 +15,5 @@ public class CommonData{
 	private int typeId;
 	private String name;
 	private String value;
+	private boolean isDisabled;
 }

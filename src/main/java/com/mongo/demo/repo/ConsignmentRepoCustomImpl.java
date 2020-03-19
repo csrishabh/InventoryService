@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.util.StringUtils;
+
 import com.mongo.demo.document.Consignment;
 import com.mongo.demo.document.Unit;
 
@@ -37,7 +38,7 @@ public class ConsignmentRepoCustomImpl implements ConsignmentRepoCustom{
 			pageNo = Long.parseLong((String)filters.get("pageNo"));
 		}
 		if(filters.containsKey("pageSize")) {
-			pageNo = Long.parseLong((String)filters.get("plageSize"));
+			pageSize = Long.parseLong((String)filters.get("pageSize"));
 		}
 		ProjectionOperation projectStage = Aggregation.project("biltyNo","des","totalParcel","bookingDate","unit","maniFestRefNo","isDeliverd","isDeleted").andExclude("_id").and("consignee.fullname").as("consignee").and("consignor.fullname").as("consignor").
 				and(when(where("unit").is(Unit.KILOGRAM)).then(Multiply.valueOf(Divide.valueOf("weight").divideBy(1000)).multiplyBy(Divide.valueOf("rate").divideBy(100))).otherwise(Multiply.valueOf("totalParcel").multiplyBy(Divide.valueOf("rate").divideBy(100)))).as("total").
@@ -168,11 +169,16 @@ public class ConsignmentRepoCustomImpl implements ConsignmentRepoCustom{
 	}
 
 	@Override
-	public void updateManifest(List<String> consignments, String manifestNo) {
+	public void updateManifest(List<String> consignments, String manifestNo,boolean isDeleted) {
 		Query query = new Query();
 		Update update = new Update();
 		query.addCriteria(Criteria.where("biltyNo").in(consignments));
+		if(isDeleted) {
+			update.pull("maniFestRefNo", manifestNo);
+		}
+		else {
 		update.push("maniFestRefNo", manifestNo);
+		}
 		mongoTemplate.updateMulti(query, update, Consignment.class);		
 		
 	}
@@ -195,6 +201,23 @@ public class ConsignmentRepoCustomImpl implements ConsignmentRepoCustom{
 		query.addCriteria(Criteria.where("biltyNo").is(biltyNo));
 		update.set("isDeleted", true);
 		mongoTemplate.findAndModify(query, update, Consignment.class);		
+		
+	}
+	
+	@Override
+	public Consignment getConsignment(String biltyNo) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("biltyNo").is(biltyNo));
+		return mongoTemplate.findOne(query, Consignment.class);
+	}
+
+	@Override
+	public void setConsignmentUnDeliverd(List<String> consignments, String des) {
+		Query query = new Query();
+		Update update = new Update();
+		query.addCriteria(Criteria.where("biltyNo").in(consignments.toArray()).and("des").is(des));
+		update.set("isDeliverd", false);
+		mongoTemplate.updateMulti(query, update, Consignment.class);
 		
 	}
 

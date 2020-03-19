@@ -1,7 +1,6 @@
 package com.mongo.demo.service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +64,7 @@ public class ManifestService {
 			manifest.setCreatedDate(Config.fomatDate(new Date()));
 			manifest = manifestRepo.save(manifest);
 			consignmentRepo.setConsignmentDeliverd(manifest.getConsignments(), manifest.getDes());
-			consignmentRepo.updateManifest(manifest.getConsignments(), String.valueOf(manifest.getRefId()));
+			consignmentRepo.updateManifest(manifest.getConsignments(), String.valueOf(manifest.getRefId()),false);
 			res.setSuccess(true);
 			res.setMsg(Arrays.asList(StringConstant.MANIFEST_CREATED_SUCCESS));
 			res.setData(String.valueOf(manifest.getRefId()));
@@ -99,5 +98,63 @@ public class ManifestService {
 			return false;
 		}
 		return true;
+	}
+	
+	
+	public AppResponse<Void> deleteManifest(String manifestId) {
+
+		AppResponse<Void> res = new AppResponse<>();
+		try {
+			Manifest manifest = manifestRepo.getManifest(manifestId);
+			if (manifest == null) {
+				res.setSuccess(false);
+				res.setMsg(Arrays.asList(StringConstant.MANIFEST_NOT_FOUND));
+			} else {
+				consignmentRepo.updateManifest(manifest.getConsignments(), manifestId, true);
+				consignmentRepo.setConsignmentUnDeliverd(manifest.getConsignments(), manifest.getDes().toUpperCase());
+				manifestRepo.deleteManifest(manifestId);
+				res.setSuccess(true);
+				res.setMsg(Arrays.asList(StringConstant.MANIFEST_DELETE_SUCCESS));
+			}
+		} catch (Exception e) {
+			res.setSuccess(false);
+			res.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+		}
+		return res;
+
+	}
+	
+	public AppResponse<Void> deleteConsignmentFromManifest(String manifestId , String biltyNo) {
+
+		AppResponse<Void> res = new AppResponse<>();
+		try {
+			Manifest manifest = manifestRepo.getManifest(manifestId);
+			if (manifest == null) {
+				res.setSuccess(false);
+				res.setMsg(Arrays.asList(StringConstant.MANIFEST_NOT_FOUND));
+			} else {
+				if(manifest.getConsignments().contains(biltyNo)) {
+				consignmentRepo.updateManifest(Arrays.asList(biltyNo), manifestId, true);
+				consignmentRepo.setConsignmentUnDeliverd(manifest.getConsignments(), manifest.getDes().toUpperCase());
+				if(manifest.getConsignments().size()==1) {
+					manifestRepo.deleteManifest(manifestId);
+				}
+				else {
+				manifestRepo.deleteConsignmentFromManifest(manifestId, biltyNo);
+				}
+				res.setSuccess(true);
+				res.setMsg(Arrays.asList(StringConstant.MANIFEST_UPDATE_SUCCESS));
+				}
+				else {
+					res.setSuccess(false);
+					res.setMsg(Arrays.asList(StringConstant.CONSIGNMENT_NOT_FOUND));
+				}
+			}
+		} catch (Exception e) {
+			res.setSuccess(false);
+			res.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+		}
+		return res;
+
 	}
 }

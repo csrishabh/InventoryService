@@ -13,7 +13,12 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.util.StringUtils;
+
+import com.mongo.demo.document.Consignment;
+import com.mongo.demo.document.Manifest;
 
 public class ManifestRepoCustomImpl implements ManifestRepoCustom {
 
@@ -29,9 +34,9 @@ public class ManifestRepoCustomImpl implements ManifestRepoCustom {
 			pageNo = Long.parseLong((String)filters.get("pageNo"));
 		}
 		if(filters.containsKey("pageSize")) {
-			pageNo = Long.parseLong((String)filters.get("plageSize"));
+			pageSize = Long.parseLong((String)filters.get("pageSize"));
 		}
-		ProjectionOperation projectStage = Aggregation.project("refId","des","createdDate","consignments","paidBy","unitComMappingVer").andExclude("_id").and("company.fullname").as("company");
+		ProjectionOperation projectStage = Aggregation.project("refId","des","createdDate","consignments","paidBy","unitComMappingVer","isDeleted").andExclude("_id").and("company.fullname").as("company");
 		Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(applyFilter(filters)),Aggregation.lookup("user", "company", "username", "company"),projectStage,Aggregation.skip(pageNo*pageSize),Aggregation.limit(pageSize));
 		AggregationResults<Document> result = mongoTemplate.aggregate(aggregation, "manifest",Document.class);
 		return result.getMappedResults();
@@ -92,6 +97,37 @@ public class ManifestRepoCustomImpl implements ManifestRepoCustom {
 			}
 		});
 		return criteria;
+	}
+
+
+	@Override
+	public void deleteManifest(String refId) {
+		Query query = new Query();
+		Update update = new Update();
+		query.addCriteria(Criteria.where("refId").is(refId));
+		update.set("isDeleted", true);
+		update.unset("consignments");
+		mongoTemplate.findAndModify(query, update, Manifest.class);		
+		
+	}
+
+
+	@Override
+	public void deleteConsignmentFromManifest(String refId,String biltyNo) {
+		Query query = new Query();
+		Update update = new Update();
+		query.addCriteria(Criteria.where("refId").is(refId));
+		update.pull("consignments", biltyNo);
+		mongoTemplate.updateMulti(query, update, Manifest.class);
+		
+	}
+
+
+	@Override
+	public Manifest getManifest(String manifestId) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("refId").is(manifestId));
+		return mongoTemplate.findOne(query, Manifest.class);
 	}
 	
 	

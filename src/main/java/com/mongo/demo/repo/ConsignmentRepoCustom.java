@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.bson.Document;
 
+import com.mongo.demo.document.Consignment;
+
 public interface ConsignmentRepoCustom {
 	
 	public List<Document> searchConsignment(Map<String, Object> filters);
@@ -19,8 +21,12 @@ public interface ConsignmentRepoCustom {
 	
 	public void setConsignmentDeliverd(List<String> consignments , String des);
 	
-	public void updateManifest(List<String> consignments , String manifestNo);
+	public void setConsignmentUnDeliverd(List<String> consignments, String des);
+	
+	public void updateManifest(List<String> consignments , String manifestNo, boolean isDeleted);
 	
 	public boolean isAnyConsignmentDeleted(List<String> consignments);
+	
+	public Consignment getConsignment(String biltyNo);
 
 }

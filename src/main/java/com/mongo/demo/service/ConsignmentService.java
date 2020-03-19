@@ -80,9 +80,13 @@ public class ConsignmentService {
 	public AppResponse<Void> deletedConsignment(String biltyNo) {
 		
 		AppResponse<Void> res = new AppResponse<>();
-		
-		boolean isConsignmentProcessed = repo.isConsignmentProcessed(biltyNo);
-		if(isConsignmentProcessed) {
+		Consignment consignment = repo.getConsignment(biltyNo);
+		if(consignment==null) {
+			res.setSuccess(false);
+			res.setMsg(Arrays.asList(StringConstant.CONSIGNMENT_NOT_FOUND));
+			return res;
+		}
+		if(null != consignment.getManiFestRefNo() && consignment.getManiFestRefNo().size() >0) {
 			res.setSuccess(false);
 			res.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
 			return res;
