@@ -17,7 +17,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.util.StringUtils;
 
-import com.mongo.demo.document.Consignment;
 import com.mongo.demo.document.Manifest;
 
 public class ManifestRepoCustomImpl implements ManifestRepoCustom {

@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,6 +60,10 @@ public class LoginController {
 		}
 		catch (BadCredentialsException ex) {
 			res.setMsg(Arrays.asList(StringConstant.INVALID_PASSWORD));
+			res.setSuccess(false);
+		}
+		catch (DisabledException e) {
+			res.setMsg(Arrays.asList(StringConstant.USER_ACCOUNT_DISBALED));
 			res.setSuccess(false);
 		}
 		catch (Exception e) {

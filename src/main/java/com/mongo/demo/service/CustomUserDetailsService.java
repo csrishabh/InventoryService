@@ -36,25 +36,74 @@ public class CustomUserDetailsService implements UserDetailsService {
 	
 	public User findUserByEmail(String email) {
 		if(cache.get(email)!=null) {
-			return cache.get(email);
+			return cache.get(email.toUpperCase());
 		}
 		else {
-			User user = userRepository.findByUsername(email);
-			cache.put(email, user);
+			User user = userRepository.findByUsernameIgnoreCase(email);
+			cache.put(email.toUpperCase(), user);
 			return user;
 		}
 	}
 	
-	/*public void saveUser(User user) {
-	    user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-	    user.setEnabled(true);
-	    user.setRoles(user.getRoles());
-	    userRepository.save(user);
-	}*/
+	public AppResponse<Void> saveUser(User user) {
+		AppResponse<Void> res = new AppResponse<>();
+		try {
+			User temp = findUserByEmail(user.getUsername());
+			if (temp == null) {
+				user.setPassword(bCryptPasswordEncoder.encode(user.getUsername()));
+				user.setEnabled(true);
+				user.setRoles(user.getRoles());
+				userRepository.save(user);
+				res.setSuccess(true);
+				res.setMsg(Arrays.asList(StringConstant.USER_CREATED_SUCCESS));
+				return res;
+			} else {
+				res.setSuccess(false);
+				res.setMsg(Arrays.asList(StringConstant.USER_ALREADY_EXIST));
+				return res;
+			}
+		} catch (Exception e) {
+			res.setSuccess(false);
+			res.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+			return res;
+		}
+
+	}
+	
+	public AppResponse<Void> updateUser(User user) {
+		AppResponse<Void> res = new AppResponse<>();
+		try {
+			User temp = findUserByEmail(user.getUsername());
+			if (temp != null) {
+				temp.setFullname(user.getFullname());
+				temp.setMobileNo(user.getMobileNo());
+				temp.setGstNo(user.getGstNo());
+				temp.setAddress(user.getAddress());
+				temp.setRoles(user.getRoles());
+				temp.setEnabled(user.isEnabled());
+				if(user.isEnabled()) {
+					temp.setPassword(bCryptPasswordEncoder.encode(temp.getUsername()));
+				}
+				userRepository.save(temp);
+				res.setSuccess(true);
+				res.setMsg(Arrays.asList(StringConstant.USER_UPDATE_SUCCESS));
+				return res;
+			} else {
+				res.setSuccess(false);
+				res.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+				return res;
+			}
+		} catch (Exception e) {
+			res.setSuccess(false);
+			res.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+			return res;
+		}
+
+	}
 	
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-		User user = userRepository.findByUsername(email);
+		User user = userRepository.findByUsernameIgnoreCase(email);
 	    if(user != null) {
 	        List<GrantedAuthority> authorities = getUserAuthority(user.getRoles());
 	        return buildUserForAuthentication(user, authorities);
@@ -106,7 +155,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	
 	private UserDetails buildUserForAuthentication(User user, List<GrantedAuthority> authorities) {
-	    return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
+	    return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),user.isEnabled(),true,true,true,authorities);
 	}
 
 }

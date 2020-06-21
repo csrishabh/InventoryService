@@ -18,6 +18,9 @@ public class StringConstant {
 	public static final String BOOKING_DATE_NOT_FOUND = "Please select delivery date";
 	public static final String APPOINTMENT_DATE_NOT_FOUND = "Please select appointment date";
 	public static final String DELIVERY_DATE_NOT_FOUND = "Please select delivery date";
+	public static final String USER_ALREADY_EXIST = "User already exist";
+	public static final String USER_CREATED_SUCCESS = "User created successfully";
+	public static final String USER_UPDATE_SUCCESS = "User updated successfully";
 	public static final String TRY_AGAIN = "Please try again";
 	public static final String CROWN_NOT_FOUND = "Please enter crown details";
 	public static final String OPD_NO_NOT_FOUND = "Please enter OPD number";
@@ -28,6 +31,7 @@ public class StringConstant {
 	public static final String PASS_NOT_CORRECT = "Please enter correct password";
 	public static final String PASS_CHANGE_SUCCESS = "Password change successfuly";
 	public static final String INVALID_PASSWORD = "Wrong Username & Password";
+	public static final String USER_ACCOUNT_DISBALED = "Account Disabled";
 	public static final String CONSIGNEMT_DELETE_SUCCESS = "Consignment deleted successfully";
 	public static final String MANIFEST_DELETE_SUCCESS = "Manifest deleted successfully";
 	public static final String MANIFEST_UPDATE_SUCCESS = "Manifest updated successfully";
