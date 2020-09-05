@@ -35,7 +35,14 @@ public class StringConstant {
 	public static final String CONSIGNEMT_DELETE_SUCCESS = "Consignment deleted successfully";
 	public static final String MANIFEST_DELETE_SUCCESS = "Manifest deleted successfully";
 	public static final String MANIFEST_UPDATE_SUCCESS = "Manifest updated successfully";
-	
+	public static final String INVOICE_CREATED_SUCCESS = "Invoice Created Successfully";
+	public static final String INVOICE_UPDATED_SUCCESS = "Invoice Updated Successfully";
+	public static final String INVOICE_CALCELED_SUCCESS = "Invoice canceled  Successfully";
+	public static final String INVOICE_DUPLICATE = "Invoice Already Added";
+	public static final String CHALLAN_CALCELED_SUCCESS = "Challan Canceled Successfully";
+	public static final String CHALLAN_CREATED_SUCCESS = "Challan Created Successfully";
+	public static final String CHALLAN_AMT_MORE_THEN_INVOICE = "You can't pay more then remaining amount";
+	public static final String CHALLAN_CALCELED_FAILD = "Please cancel latest challan first";
 	
 
 }
