@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,10 +46,7 @@ public class ExportReportService {
 	
 	public Map<String, Object> exportTransctionReport(Map<String, Object> filters) {
 		Map<String, Object> fileData = new HashMap<>();
-		List<Transction> res =  transctionRepo.getAllTransction(filters);
-		res.stream().forEach(t ->{
-			t.setAddBy(userService.findUserByEmail(t.getAddBy()).getFullname());
-		});
+		List<Document> res =  transctionRepo.getAllTransction(filters);
 		fileData.put("transactions", res);
 		return fileData;
 	}

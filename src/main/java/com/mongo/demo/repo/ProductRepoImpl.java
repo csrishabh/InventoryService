@@ -32,12 +32,6 @@ public class ProductRepoImpl implements ProductRepoCustom {
 	 @Autowired 
 	 MongoTemplate  mongoTemplate;
 	 
-	 public List<Product> findByNameStartingWith(String regexp){
-		 
-		 Criteria regex = Criteria.where("name").regex(regexp, "i");
-		 return mongoTemplate.find(new Query().addCriteria(regex), Product.class);
-	 }
-	 
 	 
 	 public Product updateProduct(Product product, TransctionType type , double qty){
 		 
@@ -151,7 +145,8 @@ public class ProductRepoImpl implements ProductRepoCustom {
 	public List<Product> getAllProduct(){
 		
 		Sort sort = Sort.by(Direction.ASC, "name");
-		Query query = new Query().with(sort);
+		Query query = new Query();
+		query.with(sort);
 		query.collation(Collation.of("en").strength(Collation.ComparisonLevel.secondary()));
 		return mongoTemplate.find(query, Product.class);
 	}
@@ -171,6 +166,7 @@ public class ProductRepoImpl implements ProductRepoCustom {
 			p = PageRequest.of(pageNo, 10);
 		}
 		Query query = new Query();
+		query.addCriteria(Criteria.where("enabled").is(true));
 		if(name!=null && !name.equals("")) {
 		query.addCriteria(Criteria.where("name").regex(name, "i"));
 		}

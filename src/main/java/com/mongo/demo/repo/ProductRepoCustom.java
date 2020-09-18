@@ -10,8 +10,6 @@ import com.mongo.demo.document.TransctionType;
 
 public interface ProductRepoCustom{
 
-	 List<Product> findByNameStartingWith(String regexp);
-	 
 	 Product updateProduct(Product product, TransctionType type , double qty);
 	 
 	 Product addCarted(Product product, TransctionType type , double qty ,Cart cart);
