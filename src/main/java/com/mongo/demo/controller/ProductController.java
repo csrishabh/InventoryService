@@ -16,11 +16,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mongo.demo.document.AppResponse;
 import com.mongo.demo.document.Product;
+import com.mongo.demo.repo.CrownMappingRepo;
 import com.mongo.demo.repo.ProductRepo;
+import com.mongo.demo.repo.UserRepository;
 import com.mongo.demo.service.EmailService;
 import com.mongo.demo.service.ProductService;
 import com.mongo.utility.Config;
+import com.mongo.utility.StringConstant;
 
 @RestController
 public class ProductController {
@@ -41,6 +45,7 @@ public class ProductController {
 		if(products.size() == 0) {
 		item.setName(item.getName().toUpperCase());	
 		item.setAlertBack((long)(item.getAlert()*Config.QTY_FORMATTER));
+		item.setEnabled(true);
 		item = repo.save(item);
 		return new ResponseEntity<Product>(item, HttpStatus.CREATED);
 		}
@@ -54,6 +59,51 @@ public class ProductController {
 		
 	}
 	
+	@PostMapping("/update/product")
+	public AppResponse<String> updateProduct(@RequestBody Product item) {
+		AppResponse<String> response = new AppResponse<>();
+		try {
+		Product p = repo.findById(item.getId()).get();
+		p.setName(item.getName().toUpperCase());
+		p.setAlertBack((long)(item.getAlert()*Config.QTY_FORMATTER));
+		repo.save(p);
+		response.setSuccess(true);
+		response.setMsg(Arrays.asList(StringConstant.PRODUCT_UPDATED_SUCCESS));
+		}
+		catch (NullPointerException e) {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.PRODUCT_NOT_FOUND));
+		}
+		catch (Exception e) {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+		}
+		return response;
+	}
+	
+	@PostMapping("/update/product/status")
+	public AppResponse<String> updateProductStatus(@RequestBody Product item) {
+		AppResponse<String> response = new AppResponse<>();
+		try {
+		Product p = repo.findById(item.getId()).get();
+		p.setEnabled(item.isEnabled());
+		repo.save(p);
+		response.setSuccess(true);
+		response.setMsg(Arrays.asList(StringConstant.PRODUCT_UPDATED_SUCCESS));
+		}
+		catch (NullPointerException e) {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.PRODUCT_NOT_FOUND));
+		}
+		catch (Exception e) {
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+		}
+		return response;
+	}
+	
+	
+
 	@GetMapping("/products")
 	public List<Product> getAllProducts(@RequestParam Map<String, Object> filters) {
 		List<Product> items = new ArrayList<>();

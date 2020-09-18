@@ -6,8 +6,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators.Divide;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -16,6 +21,7 @@ import org.springframework.util.StringUtils;
 import com.mongo.demo.document.Transction;
 import com.mongo.demo.document.TransctionType;
 import com.mongo.utility.Config;
+import com.mongo.utility.CustomProjectAggregationOperation;
 
 public class TransctionRepoImpl implements TransctionRepoCustom {
 
@@ -56,15 +62,85 @@ public class TransctionRepoImpl implements TransctionRepoCustom {
 	}
 
 	@Override
-	public List<Transction> getTransctionByUser(Map<String, Object> map, String userID) {
+	public List<Document> getTransctionByUser(Map<String, Object> map, String userID) {
 		Criteria regex = Criteria.where("addBy").is(userID).andOperator(Criteria.where("isDeleted").ne(true),applyFilter(map));
-		return mongoTemplate.find(new Query().addCriteria(regex), Transction.class);
+		
+		String getProduct =
+	            "{ $lookup: { " +
+	                    "from: 'product'," +	
+	                    "let: { 'prdId':{'$toObjectId':'$productId'}}," +
+	                    "pipeline: [{$match: {$expr: {$and: [{ $eq: ['$_id', '$$prdId']}]}}},{ $project: { _id: 0, name: 1, unit: 1} }]," +
+	                    "as: 'product'}}";
+		
+		ProjectionOperation projectStage = Aggregation.project("date","isDeleted","type","id").andExclude("_id").
+				and("addBy.fullname").arrayElementAt(0).as("addBy").
+				and("product.name").arrayElementAt(0).as("prdName").
+				and("product.unit").arrayElementAt(0).as("prdUnit").
+				and(Divide.valueOf("quantityBack").divideBy(1000)).as("qty").
+				and(Divide.valueOf("amountBack").divideBy(100)).as("amount");
+			
+		String getRemainingAmt = "{$addFields: { id:" + 
+				"{ $toString: '$_id'}}}";
+		
+		Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(regex),
+				Aggregation.lookup("user", "addBy", "username", "addBy"),
+				new CustomProjectAggregationOperation(getProduct),
+				new CustomProjectAggregationOperation(getRemainingAmt),
+				projectStage,Aggregation.match(applyProductFilter(map)));
+		
+		AggregationResults<Document> result = mongoTemplate.aggregate(aggregation, "transction",Document.class);
+		
+		return result.getMappedResults();
 	}
 
 	@Override
-	public List<Transction> getAllTransction(Map<String, Object> map) {
+	public List<Document> getAllTransction(Map<String, Object> map) {
 		Criteria regex = Criteria.where("isDeleted").ne(true).andOperator(applyFilter(map));
-		return mongoTemplate.find(new Query().addCriteria(regex), Transction.class);
+		
+		String getProduct =
+	            "{ $lookup: { " +
+	                    "from: 'product'," +	
+	                    "let: { 'prdId':{'$toObjectId':'$productId'}}," +
+	                    "pipeline: [{$match: {$expr: {$and: [{ $eq: ['$_id', '$$prdId']}]}}},{ $project: { _id: 0, name: 1, unit: 1,lastPriceBack: 1 , lstAdtDate: 1} }]," +
+	                    "as: 'product'}}";
+		
+		ProjectionOperation projectStage = Aggregation.project("date","isDeleted","type","id").andExclude("_id").
+				and("addBy.fullname").arrayElementAt(0).as("addBy").
+				and("product.name").arrayElementAt(0).as("prdName").
+				and("product.unit").arrayElementAt(0).as("prdUnit").
+				and("product.lastPriceBack").arrayElementAt(0).as("lastPriceBack").
+				and("product.lstAdtDate").arrayElementAt(0).as("lstAdtDate").
+				and(Divide.valueOf("quantityBack").divideBy(1000)).as("qty").
+				and(Divide.valueOf("amountBack").divideBy(100)).as("amount");
+			
+		String getRemainingAmt = "{$addFields: { id:" + 
+				"{ $toString: '$_id'}}}";
+		
+		Aggregation aggregation = Aggregation.newAggregation(Aggregation.match(regex),
+				Aggregation.lookup("user", "addBy", "username", "addBy"),
+				new CustomProjectAggregationOperation(getProduct),
+				new CustomProjectAggregationOperation(getRemainingAmt),
+				projectStage,Aggregation.match(applyProductFilter(map)));
+		
+		AggregationResults<Document> result = mongoTemplate.aggregate(aggregation, "transction",Document.class);
+		
+		return result.getMappedResults();
+	}
+	
+	private Criteria applyProductFilter(Map<String, Object> filters) {
+		
+		Criteria criteria = new Criteria();
+		filters.forEach((k,v)->{
+			switch(k) {
+			case "productName": {
+				if(!StringUtils.isEmpty(v))
+					criteria.and("prdName").regex((String)v,"i");
+				break;
+			}
+			}
+		});
+		return criteria;
+		
 	}
 	
 	private Criteria applyFilter(Map<String, Object> filters) {

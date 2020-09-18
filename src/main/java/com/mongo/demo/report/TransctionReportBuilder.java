@@ -15,6 +15,7 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.bson.Document;
 import org.springframework.web.servlet.view.document.AbstractXlsxView;
 
 import com.mongo.demo.document.Transction;
@@ -26,14 +27,14 @@ public class TransctionReportBuilder extends AbstractXlsxView {
 	protected void buildExcelDocument(Map<String, Object> data, Workbook workbook, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
-		List<Transction> transctions = (List<Transction>) data.get("transactions");
+		List<Document> transctions = (List<Document>) data.get("transactions");
 		response.setHeader("Content-Disposition", "attachment; filename=\"my-xlsx-file.xlsx\"");
 
 		Sheet sheet = workbook.createSheet("Transctions");
 		sheet.setDefaultColumnWidth(20);
 
 		// create style for header cells
-		CellStyle style = workbook.createCellStyle();
+		CellStyle style = workbook.createCellStyle();	
 		Font font = workbook.createFont();
 		font.setFontName("Arial");
 		style.setFillPattern(CellStyle.SOLID_FOREGROUND);
@@ -70,20 +71,55 @@ public class TransctionReportBuilder extends AbstractXlsxView {
 
 		header.createCell(4).setCellValue("Added By");
 		header.getCell(4).setCellStyle(style);
+		
+		header.createCell(5).setCellValue("Amount");
+		header.getCell(5).setCellStyle(style);
+		
+		header.createCell(6).setCellValue("Last Price");
+		header.getCell(6).setCellStyle(style);
+		
+		header.createCell(7).setCellValue("Value");
+		header.getCell(7).setCellStyle(style);
+		
+		header.createCell(8).setCellValue("Update Date");
+		header.getCell(8).setCellStyle(style);
+		
+		
 
 		int rowCount = 2;
 
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-
-		for (Transction trns : transctions) {
+		Double in = 0.0;
+		Double out = 0.0;
+		for (Document trns : transctions) {
 			Row aRow = sheet.createRow(rowCount++);
-			aRow.createCell(0).setCellValue(formatter.format(trns.getDate()));
-			aRow.createCell(1).setCellValue(trns.getProductName().toUpperCase());
-			aRow.createCell(2).setCellValue(Config.format(trns.getQuantityBack(), Config.QTY_FORMATTER));
-			aRow.createCell(3).setCellValue(trns.getType().toString());
-			aRow.createCell(4).setCellValue(trns.getAddBy());
+			aRow.createCell(0).setCellValue(formatter.format(trns.getDate("date")));
+			aRow.createCell(1).setCellValue(trns.getString("prdName"));
+			aRow.createCell(2).setCellValue(trns.getDouble("qty")+"-"+trns.getString("prdUnit"));
+			aRow.createCell(3).setCellValue(trns.getString("type"));
+			aRow.createCell(4).setCellValue(trns.getString("addBy"));
+			if(trns.getString("type").equals("ADD")) {
+				aRow.createCell(5).setCellValue(trns.getDouble("amount"));
+				in = in+trns.getDouble("amount");
+			}
+			Double lastPrice = Double.parseDouble(trns.get("lastPriceBack").toString())/100;
+			aRow.createCell(6).setCellValue(lastPrice);
+			if(trns.getString("type").equals("DISPATCH")) {
+				aRow.createCell(7).setCellValue(trns.getDouble("qty")*lastPrice);
+				out = out + trns.getDouble("qty")*lastPrice;
+			}
+			
+			if(null!=trns.getDate("lstAdtDate")) {
+			aRow.createCell(8).setCellValue(formatter.format(trns.getDate("lstAdtDate")));
+			}
+			
 		}
-
+		sheet.createRow(rowCount++);
+		Row totalRow = sheet.createRow(rowCount++);
+		totalRow.createCell(0).setCellValue("Total Add Value");
+		totalRow.createCell(1).setCellValue(in);
+		totalRow.createCell(2).setCellValue("Total Dispatch Value");
+		totalRow.createCell(3).setCellValue(out);
 	}
 
 }
