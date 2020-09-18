@@ -45,7 +45,7 @@ public class CaseController {
 	}
 	
 	@GetMapping("/patient/{OpdNo}")
-	public AppResponse<String> getPatientNameByOpdNo(@PathVariable("OpdNo") String OpdNo) {
+	public AppResponse<Case> getPatientNameByOpdNo(@PathVariable("OpdNo") String OpdNo) {
 		return caseService.getPatientNameByOpdNo(OpdNo);
 	}
 	

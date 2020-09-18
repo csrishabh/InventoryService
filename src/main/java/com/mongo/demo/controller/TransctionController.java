@@ -2,14 +2,17 @@ package com.mongo.demo.controller;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mongo.demo.document.AppResponse;
 import com.mongo.demo.document.Cart;
 import com.mongo.demo.document.Order;
 import com.mongo.demo.document.Product;
@@ -31,6 +35,7 @@ import com.mongo.demo.repo.TransctionRepo;
 import com.mongo.demo.service.CustomUserDetailsService;
 import com.mongo.demo.service.EmailService;
 import com.mongo.utility.Config;
+import com.mongo.utility.StringConstant;
 
 @RestController
 public class TransctionController {
@@ -76,6 +81,7 @@ public class TransctionController {
 		}
 	}
 	
+	@PreAuthorize ("hasAuthority('ADMIN_INV')")
 	@GetMapping("/audit/transction")
 	public ResponseEntity<List<Object[]>> getAuditableTransctions(@RequestParam Map<String, Object> map) {
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
@@ -108,25 +114,26 @@ public class TransctionController {
 	}
 	
 	@GetMapping("/transction")
-	public ResponseEntity<List<Transction>> getTransctions(@RequestParam Map<String, Object> map) {
-		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+	public AppResponse<List<Document>> getTransctions(@RequestParam Map<String, Object> map) {
 		String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+		AppResponse<List<Document>> response = new AppResponse<>();
 		try {
 			User user = userService.findUserByEmail(userId);
-			List<Transction> transctions = null;
+			List<Document> transctions;
 			if(user.getRoles().contains("ADMIN_INV")) {
 				transctions = tRepo.getAllTransction(map);
 			}
 			else {
 				transctions = tRepo.getTransctionByUser(map,userId);
 			}
-			transctions.stream().forEach(t ->{
-				t.setAddBy(userService.findUserByEmail(t.getAddBy()).getFullname());
-			});
-			return new ResponseEntity<List<Transction>>(transctions, HttpStatus.OK);
+			response.setSuccess(true);
+			response.setData(transctions);
+			return response;
 		}
 		catch (Exception e) {
-			return new ResponseEntity<List<Transction>>(HttpStatus.INTERNAL_SERVER_ERROR);
+			response.setSuccess(false);
+			response.setMsg(Arrays.asList(StringConstant.TRY_AGAIN));
+			return response;
 		}
 		
 	}

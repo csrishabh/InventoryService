@@ -78,7 +78,7 @@ public class PaymentReportBuilder extends AbstractXlsxView{
         
         for (Product product : products) {
             Row aRow = sheet.createRow(rowCount++);
-            aRow.createCell(0).setCellValue(product.getName());
+            aRow.createCell(0).setCellValue(product.getName().toUpperCase());
             aRow.createCell(1).setCellValue(Config.format(product.getQtyAblBack(), Config.QTY_FORMATTER));
             aRow.createCell(2).setCellValue(Config.format(product.getAlertBack(), Config.QTY_FORMATTER));
             if(product.getQtyAblBack()< product.getAlertBack()) {

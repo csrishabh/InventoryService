@@ -1,24 +1,35 @@
 package com.mongo.demo.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mongo.demo.document.AppResponse;
 import com.mongo.demo.document.User;
 import com.mongo.demo.repo.UserRepository;
+import com.mongo.demo.service.CustomUserDetailsService;
 
 @RestController
 public class UserController {
 
 	@Autowired
 	UserRepository userRepo;
+	
+	@Autowired
+	CustomUserDetailsService userService;
 
 	@GetMapping(value = "/getUsers")
     public ResponseEntity<List<String>> getAllUsers() {
@@ -31,8 +42,19 @@ public class UserController {
 		if(name.trim().equals("")) {
 			return new ArrayList<>();
 		}
-		List<User> users = userRepo.findByNameStartingWithAndType(name.trim(),type.toUpperCase().trim());
+		List<User> users = userRepo.findByNameStartingWithAndType(name.trim(),type.toUpperCase().trim(),true);
 		return users;
+	}
+	
+	@GetMapping("/get/user")
+	public ResponseEntity<List<Document>> searchUsers(@RequestParam Map<String, Object> filters) {
+		try {
+			List<Document> users = userRepo.searchUsers(filters);
+			return new ResponseEntity<List<Document>>(users, HttpStatus.OK);
+		}
+		catch (Exception e) {
+			return new ResponseEntity<List<Document>>(HttpStatus.INTERNAL_SERVER_ERROR);	
+		}
 	}
 	
 	@GetMapping("/user/{name}")
@@ -43,5 +65,21 @@ public class UserController {
 		List<User> users = userRepo.findByNameStartingWith(name.trim());
 		return users;
 	}
+	
+	@PostMapping("/password/reset")
+	public AppResponse<String> resetPassword(@RequestBody HashMap<String, String> param) {
+		return userService.resetPassword(param);
+	}
+	
+	@PostMapping("/create/user")
+	public AppResponse<Void> createUser(@RequestBody User user) {
+		return userService.saveUser(user);
+	}
+	
+	@PostMapping("/update/user")
+	public AppResponse<Void> updateUser(@RequestBody User user) {
+		return userService.updateUser(user);
+	}
+	
 
 }
